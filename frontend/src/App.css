@@ -1,0 +1,616 @@
+#root {
+    min-height: 100vh;
+}
+
+.shell {
+    min-height: 100vh;
+    background: #f3f4ed;
+}
+
+.topbar {
+    height: 76px;
+    padding: 0 5vw;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #dfe4dc;
+    background: rgba(248, 249, 243, .86);
+}
+
+.brand,
+.shared-brand {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+}
+
+.brand-mark {
+    display: grid;
+    place-items: center;
+    width: 29px;
+    height: 29px;
+    border-radius: 9px 9px 9px 2px;
+    background: #d7593d;
+    color: white;
+    font-size: 15px;
+}
+
+.account {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #68756e;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #70a879;
+    box-shadow: 0 0 0 4px #e0eee1;
+}
+
+.avatar {
+    display: grid;
+    place-items: center;
+    margin-left: 9px;
+    width: 31px;
+    height: 31px;
+    border-radius: 50%;
+    background: #dfe9df;
+    color: #52715b;
+    font-size: 10px;
+}
+
+.workspace {
+    width: min(1280px, 92vw);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: calc(100vh - 76px);
+}
+
+.sidebar {
+    padding: 36px 19px 24px 0;
+    border-right: 1px solid #dfe4dc;
+    display: flex;
+    flex-direction: column;
+}
+
+.eyebrow,
+.crumb {
+    color: #829087;
+    font: 500 10px 'DM Mono', monospace;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+}
+
+.new-note {
+    margin: 21px 19px 25px 0;
+    padding: 13px 16px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    border: 0;
+    border-radius: 7px;
+    background: #274c3e;
+    color: white;
+    font-size: 12px;
+    font-weight: 800;
+    box-shadow: 0 5px 14px #294d3e22;
+}
+
+.new-note span {
+    font-size: 20px;
+    line-height: 12px;
+    font-weight: 400;
+}
+
+.note-list {
+    display: grid;
+    gap: 3px;
+}
+
+.note-item {
+    padding: 12px 13px;
+    display: grid;
+    gap: 4px;
+    text-align: left;
+    border: 0;
+    border-left: 2px solid transparent;
+    background: transparent;
+    color: #2b3831;
+}
+
+.note-item:hover,
+.note-item.active {
+    border-left-color: #d7593d;
+    background: #e7ebe2;
+}
+
+.note-item strong {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 12px;
+}
+
+.note-item span,
+.muted {
+    color: #93a098;
+    font-size: 10px;
+}
+
+.muted {
+    padding: 0 13px;
+    line-height: 1.7;
+}
+
+.sidebar-foot {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid #dfe4dc;
+    color: #65736a;
+}
+
+.storage-icon {
+    color: #d7593d;
+    font-size: 19px;
+}
+
+.sidebar-foot strong,
+.sidebar-foot small {
+    display: block;
+    font-size: 10px;
+}
+
+.sidebar-foot small {
+    margin-top: 3px;
+    color: #9aa49d;
+}
+
+.editor-panel {
+    padding: 61px clamp(30px, 8vw, 123px);
+}
+
+.editor-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 35px;
+}
+
+h1 {
+    margin: 12px 0 0;
+    color: #23372d;
+    font-size: clamp(27px, 3vw, 39px);
+    letter-spacing: -.045em;
+    line-height: 1.1;
+}
+
+.actions {
+    display: flex;
+    gap: 9px;
+}
+
+.ghost,
+.danger {
+    padding: 9px 13px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.ghost {
+    border: 1px solid #cbd8cc;
+    background: #f7f8f3;
+    color: #315b49;
+}
+
+.share-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: border-color .2s ease, background-color .2s ease, color .2s ease, transform .2s ease;
+}
+
+.share-button.copied {
+    border-color: #8fbc99;
+    background: #e6f1e5;
+    color: #347047;
+    animation: share-button-pop .36s ease-out;
+}
+
+.share-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 14px;
+    height: 14px;
+    font-size: 15px;
+    line-height: 1;
+}
+
+.danger {
+    border: 1px solid transparent;
+    background: transparent;
+    color: #aa6758;
+}
+
+.share-preview {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin: -17px 0 22px;
+    padding: 10px 12px;
+    border: 1px solid #cde2ce;
+    border-radius: 7px;
+    background: #edf7ec;
+    color: #367048;
+    opacity: 0;
+    transform: translateY(-7px) scale(.98);
+    transform-origin: top right;
+    pointer-events: none;
+}
+
+.share-preview.is-visible {
+    animation: share-preview-in .42s cubic-bezier(.2, .8, .2, 1) forwards;
+    pointer-events: auto;
+}
+
+.preview-check {
+    display: grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: 23px;
+    height: 23px;
+    border-radius: 50%;
+    background: #5d9a6b;
+    color: white;
+    font-size: 13px;
+    animation: checkmark-in .38s .08s ease-out both;
+}
+
+.preview-copy {
+    min-width: 0;
+    display: grid;
+    gap: 3px;
+}
+
+.preview-copy strong {
+    font-size: 11px;
+}
+
+.preview-copy span {
+    overflow: hidden;
+    max-width: min(520px, 60vw);
+    color: #78917d;
+    font: 10px 'DM Mono', monospace;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.preview-dismiss {
+    margin-left: auto;
+    padding: 3px 5px;
+    border: 0;
+    background: transparent;
+    color: #79a181;
+    font-size: 18px;
+    line-height: 1;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: .42;
+}
+
+.note-form {
+    overflow: hidden;
+    border: 1px solid #dce3d9;
+    border-radius: 8px;
+    background: #fbfcf8;
+    box-shadow: 0 16px 35px #71807012;
+}
+
+.title-input {
+    width: 100%;
+    padding: 25px 28px 16px;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #26382e;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -.04em;
+}
+
+.title-input::placeholder,
+textarea::placeholder {
+    color: #b5beb5;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 25px;
+    border-block: 1px solid #e8ede5;
+    color: #718178;
+}
+
+.toolbar button {
+    min-width: 25px;
+    padding: 4px 7px;
+    border: 0;
+    border-radius: 3px;
+    background: transparent;
+    color: #54645a;
+    font-size: 11px;
+}
+
+.toolbar button:hover {
+    background: #edf1e9;
+}
+
+.toolbar-rule {
+    height: 18px;
+    margin: 0 7px;
+    border-left: 1px solid #dfe5dc;
+}
+
+.format-label {
+    font: 500 10px 'DM Mono', monospace;
+    color: #a4aea6;
+}
+
+textarea {
+    display: block;
+    width: 100%;
+    min-height: 420px;
+    padding: 27px 29px;
+    resize: vertical;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #425148;
+    font-size: 14px;
+    line-height: 1.9;
+}
+
+.form-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 15px 20px 15px 28px;
+    border-top: 1px solid #e8ede5;
+}
+
+.save-state {
+    overflow: hidden;
+    color: #9aa69c;
+    font-size: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.save {
+    padding: 11px 16px;
+    border: 0;
+    border-radius: 5px;
+    background: #d7593d;
+    color: white;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.save span {
+    margin-left: 12px;
+    font-size: 16px;
+}
+
+.shared-shell {
+    min-height: 100vh;
+    padding: 30px 7vw;
+    background: #f3f4ed;
+}
+
+.shared-brand {
+    color: #29493c;
+}
+
+.shared-brand>span:last-child {
+    margin-left: 8px;
+    color: #88968d;
+    font: 500 10px 'DM Mono', monospace;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.shared-note {
+    max-width: 750px;
+    margin: 12vh auto;
+    padding: 55px 65px;
+    border: 1px solid #dce3d9;
+    border-radius: 8px;
+    background: #fbfcf8;
+    box-shadow: 0 18px 50px #71807016;
+}
+
+.shared-note h1 {
+    font-size: clamp(34px, 5vw, 56px);
+}
+
+.shared-date {
+    margin-top: 15px;
+    color: #99a49c;
+    font-size: 11px;
+}
+
+.shared-content {
+    margin-top: 52px;
+    color: #4e5c53;
+    font-size: 15px;
+    line-height: 2;
+    white-space: pre-wrap;
+}
+
+.shared-empty {
+    margin: 18vh auto;
+    text-align: center;
+    color: #7f8e84;
+}
+
+.shared-empty>span {
+    font-size: 40px;
+    color: #d7593d;
+}
+
+.shared-empty h1 {
+    font-size: 26px;
+}
+
+.shared-empty p {
+    font-size: 13px;
+}
+
+@keyframes share-button-pop {
+    0% {
+        transform: scale(1);
+    }
+
+    45% {
+        transform: scale(1.06);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes share-preview-in {
+    0% {
+        opacity: 0;
+        transform: translateY(-7px) scale(.98);
+    }
+
+    60% {
+        opacity: 1;
+        transform: translateY(2px) scale(1.01);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes checkmark-in {
+    0% {
+        opacity: 0;
+        transform: scale(.4) rotate(-18deg);
+    }
+
+    70% {
+        opacity: 1;
+        transform: scale(1.14) rotate(4deg);
+    }
+
+    100% {
+        transform: scale(1) rotate(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
+}
+
+@media (max-width: 760px) {
+    .topbar {
+        padding: 0 22px;
+    }
+
+    .account {
+        font-size: 0;
+    }
+
+    .workspace {
+        width: 100%;
+        display: block;
+    }
+
+    .sidebar {
+        padding: 22px;
+        border-right: 0;
+        border-bottom: 1px solid #dfe4dc;
+    }
+
+    .new-note {
+        margin: 15px 0;
+    }
+
+    .note-list {
+        display: flex;
+        overflow-x: auto;
+    }
+
+    .note-item {
+        min-width: 150px;
+    }
+
+    .sidebar-foot {
+        display: none;
+    }
+
+    .editor-panel {
+        padding: 35px 20px;
+    }
+
+    .editor-head {
+        align-items: flex-start;
+        flex-direction: column;
+        margin-bottom: 25px;
+    }
+
+    .share-preview {
+        margin-top: -7px;
+    }
+
+    .preview-copy span {
+        max-width: 68vw;
+    }
+
+    .shared-shell {
+        padding: 22px;
+    }
+
+    .shared-note {
+        margin: 10vh auto;
+        padding: 32px 25px;
+    }
+
+    .form-foot {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .save {
+        width: 100%;
+    }
+}

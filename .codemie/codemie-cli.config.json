@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "activeProfile": "default",
+  "profiles": {},
+  "codemieAssistants": [
+    {
+      "id": "8e837fa8-dbaf-491f-80ba-6b131ca282c5",
+      "name": "SDLC Development & Code Generation Assistant (Claude-Code)",
+      "slug": "sdlc-development-code-generation-assistant-claude-code",
+      "description": "Developer assistant powered by CodeMie and Claude-Code CLI (codemie-claude). Reads local design/checklist files (root/docs/design.md, root/docs/pr_checklist.md), executes codemie-claude via the terminal to generate code for https://github.com/utpal74/codemie-meetingnotes, pushes changes, and automatically opens a Pull Request on GitHub.",
+      "project": "utpal_kumar2@epam.com",
+      "registeredAt": "2026-09-29T06:57:33.568Z",
+      "registrationMode": "agent",
+      "agentTargets": [
+        "claude"
+      ]
+    }
+  ]
+}
