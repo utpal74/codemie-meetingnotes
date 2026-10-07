@@ -1,11 +1,29 @@
+﻿# =============================================================================
+# Doctor Appointment Booking System -- docker-compose.yml
+# =============================================================================
+# Environments:
+#   Development  : docker compose up --build
+#   Production   : docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Services:
+#   db        PostgreSQL 16 database with persistent volume
+#   api       Node.js / Express / Prisma backend (port 4000)
+#   frontend  React/Vite bundle served by nginx (port 3000)
+# =============================================================================
+
 version: '3.9'
 
 services:
+
+  # ---------------------------------------------------------------------------
+  # Database
+  # ---------------------------------------------------------------------------
   db:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: appointments
-      POSTGRES_USER: postgres
+      POSTGRES_DB:       appointments
+      POSTGRES_USER:     postgres
       POSTGRES_PASSWORD: postgres
     ports:
       - '5432:5432'
@@ -13,38 +31,61 @@ services:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres']
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      interval: 10s
+      timeout:  5s
+      retries:  10
+      start_period: 20s
 
+  # ---------------------------------------------------------------------------
+  # Backend API
+  # ---------------------------------------------------------------------------
   api:
     build:
-      context: ./backend
+      context:    ./backend
       dockerfile: Dockerfile
+      target:     runner
+    image: codemie-meetingnotes-api:latest
+    restart: unless-stopped
     ports:
       - '4000:4000'
     env_file:
       - .env
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/appointments
-      NODE_ENV: development
+      NODE_ENV:     production
+      PORT:         '4000'
     depends_on:
       db:
         condition: service_healthy
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:4000/health || exit 1']
+      interval: 30s
+      timeout:  10s
+      retries:  5
+      start_period: 40s
 
+  # ---------------------------------------------------------------------------
+  # Frontend
+  # ---------------------------------------------------------------------------
   frontend:
     build:
-      context: ./frontend
+      context:    ./frontend
       dockerfile: Dockerfile
+      target:     runner
+    image: codemie-meetingnotes-frontend:latest
+    restart: unless-stopped
     ports:
       - '3000:3000'
-    environment:
-      VITE_API_URL: http://localhost:4000
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:3000/ || exit 1']
+      interval: 30s
+      timeout:  10s
+      retries:  3
+      start_period: 15s
 
 volumes:
   pg_data:
+    driver: local

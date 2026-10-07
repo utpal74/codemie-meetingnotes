@@ -1,0 +1,32 @@
+﻿# Backend .dockerignore
+# Keeps the build context lean -- only source files reach the Docker daemon.
+
+node_modules
+.npm
+
+# Environment / secrets -- never bake into the image
+.env
+.env.*
+!.env.example
+
+# Prisma-generated files (regenerated at build time via prisma generate)
+node_modules/.prisma
+
+# Tests and tooling
+**/__tests__
+**/*.test.js
+**/*.spec.js
+jest.config.*
+
+# Version control
+.git
+.gitignore
+
+# Docker files (not needed inside the image)
+Dockerfile
+.dockerignore
+
+# Docs / artifacts
+README.md
+CHANGELOG.md
+*.md
