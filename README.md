@@ -1,258 +1,144 @@
-# ShareNotes
+# Doctor Appointment Booking System
 
-ShareNotes is a note management and sharing application. The current repository contains a working vertical slice for creating, editing, deleting, and sharing notes through public read-only links.
+A phone-based clinic appointment booking system built end-to-end via an **Agentic SDLC cycle** using Claude Agent Mode.
 
-The project is being built from the requirements and architecture documents in this repository. The current implementation is a development prototype and is not production-ready yet.
+Receptionists receive calls, open the browser UI, and book, cancel, or reschedule patient appointments. Patients receive an automatic SMS confirmation after every action.
 
-## Features Currently Implemented
+---
 
-- Create a note with a title and text content.
-- List notes for the development user.
-- Open and edit an existing note.
-- Optimistic version checks for updates.
-- Return `409 Conflict` when an older note version is submitted.
-- Soft-delete notes.
-- Generate an opaque public share token.
-- Copy a share link to the clipboard.
-- Show an animated copied-link preview in the frontend.
-- View a shared note without editing controls.
-- Invalidate a shared link when its note is deleted.
-- Enforce a 30 MB limit for the current note title and content payload.
-- Responsive frontend layout for desktop and mobile widths.
-
-## Project Structure
-
-```text
-sharenotes/
-|-- backend/                 NestJS API
-|   |-- src/
-|   |-- test/
-|   `-- package.json
-|-- frontend/                React + Vite application
-|   |-- src/
-|   `-- package.json
-|-- docs/                     Requirements, architecture, review, plan, and verification artifacts
-|   |-- input/                 Source Word user stories for the SDLC Orchestrator
-|   |-- requirements.md       Product requirements and acceptance criteria
-|   |-- architecture.md       High-level system architecture
-|   |-- design-review.md      Architecture review findings and decisions
-|   |-- impl-plan.md          Dependency-ordered implementation plan
-|   `-- verification.md      Verification evidence
-|-- .github/agents/           Eight SDLC phase agents and the orchestrator
-|-- scripts/                  Word-story extraction and launch helpers
-|-- start-sharenotes.ps1     Windows PowerShell launcher
-|-- start-sharenotes.sh      Bash launcher
-`-- README.md
-```
-
-## Prerequisites
-
-- Node.js compatible with the installed project dependencies.
-- npm.
-- PowerShell on Windows, or Bash for the shell launcher.
-
-No database or Docker installation is required for the current prototype because the backend uses in-memory storage.
-
-## Install Dependencies
-
-From the repository root:
-
-```powershell
-Push-Location backend
-npm install
-Pop-Location
-
-Push-Location frontend
-npm install
-Pop-Location
-```
-
-On Bash:
+## Quick Start
 
 ```bash
-(cd backend && npm install)
-(cd frontend && npm install)
+# 1 — Copy env file and fill in your values
+cp .env.example .env
+
+# 2 — Start the database
+docker compose up -d db
+
+# 3 — Run migrations and seed
+cd backend
+npm install
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/appointments \
+  npx prisma migrate deploy && npx prisma db seed
+
+# 4 — Generate a bcrypt hash for the receptionist password
+node scripts/hash-password.js admin123
+# → copy the hash into .env as RECEPTIONIST_PASSWORD_HASH
+
+# 5 — Start the API (port 4000)
+npm run dev
+
+# 6 — Start the frontend (port 3000, new terminal)
+cd ../frontend && npm install && npm run dev
 ```
 
-## Start the Application
+Open **http://localhost:3000** — log in with `receptionist / admin123`.
 
-### Windows PowerShell
+---
 
-From the repository root:
-
-```powershell
-.\start-sharenotes.ps1
-```
-
-The script opens the backend and frontend using their local project binaries.
-
-### Bash
-
-From the repository root:
+## Running Tests
 
 ```bash
-bash ./start-sharenotes.sh
+cd backend
+npm test              # 109 unit + integration tests
 ```
 
-Press `Ctrl+C` to stop both services.
-
-### Start Services Manually
-
-Backend:
-
-```powershell
-Push-Location backend
-.\node_modules\.bin\nest.cmd start --watch --host 0.0.0.0 --port 3000
+```bash
+node scripts/check-docs.js   # 181 document quality checks
 ```
 
-Frontend, in a second terminal:
+---
 
-```powershell
-Push-Location frontend
-.\node_modules\.bin\vite.cmd --host 0.0.0.0 --port 5173
+## Project Documents
+
+| Document | Purpose |
+|---|---|
+| [requirements.md](artifacts/requirements.md) | FR-01–FR-08 and NFR-01–NFR-08 |
+| [architecture.md](artifacts/architecture.md) | System design, ER diagram, ADRs |
+| [design-review.md](artifacts/design-review.md) | Pre-code architecture review (12 findings) |
+| [impl-plan.md](artifacts/impl-plan.md) | 41-task dependency-ordered implementation plan |
+| [code-review.md](artifacts/code-review.md) | Post-implementation peer review (10 findings, all fixed) |
+| [CHANGELOG.md](CHANGELOG.md) | Release history |
+
+---
+
+## Architecture
+
+```
+Browser (Receptionist)
+  └── React 18 + Tailwind CSS
+        └── POST/GET/PATCH /api/*
+              └── Express 4 + Prisma 5
+                    ├── PostgreSQL 16  (appointments, doctors, SMS logs)
+                    └── Twilio SMS API (patient notifications)
 ```
 
-## Local URLs
+Key design decisions: [architecture.md § ADRs](artifacts/architecture.md#10-key-architecture-decisions)
 
-- Frontend: http://localhost:5173/
-- API notes endpoint: http://localhost:3000/api/v1/notes
-- API base path: http://localhost:3000/api/v1
+---
 
-The frontend currently uses the development identity `demo-user` through the `x-user-id` request header.
+## Departments & Doctors (seeded)
 
-## Current API Surface
+| Department | Doctors |
+|---|---|
+| Cardiology | Dr. Arjun Mehta, Dr. Nisha Kapoor |
+| General Medicine | Dr. Priya Sharma, Dr. Suresh Iyer |
+| Bone Health | Dr. Rajesh Patel, Dr. Ananya Bose |
 
-All API routes use the `/api/v1` prefix.
+---
 
-| Method | Endpoint | Purpose |
-| --- | --- | --- |
-| `POST` | `/notes` | Create a note |
-| `GET` | `/notes` | List active notes for the current development user |
-| `GET` | `/notes/:noteId` | Retrieve an owned note |
-| `PATCH` | `/notes/:noteId` | Update an owned note using its current `version` |
-| `DELETE` | `/notes/:noteId` | Soft-delete an owned note |
-| `POST` | `/notes/:noteId/share` | Create or reuse an active share link |
-| `DELETE` | `/notes/:noteId/share/:token` | Revoke a share link |
-| `GET` | `/shared/:token` | Read a shared note without authentication |
+## Environment Variables
 
-Example create request:
+See [.env.example](.env.example) for all required variables. Key ones:
 
-```powershell
-$body = @{ title = 'First note'; content = 'A note from ShareNotes.' } | ConvertTo-Json
-Invoke-RestMethod `
-  -Method Post `
-  -Uri http://localhost:3000/api/v1/notes `
-  -Headers @{ 'x-user-id' = 'demo-user' } `
-  -ContentType 'application/json' `
-  -Body $body
-```
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `SESSION_SECRET` | Express session signing secret (required in production) |
+| `PHONE_ENCRYPTION_KEY` | 64-char hex key for AES-256-GCM phone encryption |
+| `PHONE_HMAC_SECRET` | HMAC secret for phone number lookup hashing |
+| `TWILIO_*` | Twilio credentials (leave blank to disable SMS in dev) |
 
-Example update request:
+---
 
-```powershell
-$body = @{
-  title = 'Updated note'
-  content = 'Updated content.'
-  version = 1
-} | ConvertTo-Json
+## CI / CD
 
-Invoke-RestMethod `
-  -Method Patch `
-  -Uri http://localhost:3000/api/v1/notes/<note-id> `
-  -Headers @{ 'x-user-id' = 'demo-user' } `
-  -ContentType 'application/json' `
-  -Body $body
-```
+GitHub Actions workflows in [`.github/workflows/`](.github/workflows/):
 
-## Validation Commands
+| Workflow | Trigger | Jobs |
+|---|---|---|
+| `ci.yml` | Pull requests to `main` and pushes to `main` | Backend tests · Doc quality · Frontend build |
 
-Backend:
+Claude Agent definitions are in [`.claude/agents/`](.claude/agents/). Shared and stage-specific instructions are in [`.claude/instructions/`](.claude/instructions/), shared and path-scoped rules are in [`.claude/rules/`](.claude/rules/), and reusable project skills are in [`.claude/skills/`](.claude/skills/) as `SKILL.md` files. Agent hooks are in [`.claude/hooks/`](.claude/hooks/); every agent runs `pre-tool-guard.js` before shell and file-write tools to block broad staging, force pushes, destructive resets/cleans, and writes to secret files. Pre- and post-merge check instructions are in [`.github/hooks/`](.github/hooks/).
 
-```powershell
-Push-Location backend
-npm run build
-npm test
-npm run lint
-```
+### GitHub MCP server (Claude Code)
 
-Frontend:
+The shared [`.mcp.json`](.mcp.json) gives Claude Code (and the `pr-creator` agent) the GitHub MCP server. It contains no token or account details; each developer supplies their own fine-grained GitHub personal access token through an environment variable:
 
-```powershell
-Push-Location frontend
-npm run build
-npm run lint
-```
+1. Install and start Docker (the server runs as `ghcr.io/github/github-mcp-server`).
+2. Create a GitHub PAT with access to this repository (Contents, Pull requests, and Issues read/write).
+3. Set the token in your shell before launching Claude Code — never commit it:
+   - PowerShell: `$env:GITHUB_PERSONAL_ACCESS_TOKEN = Read-Host -AsSecureString "GitHub PAT" | ConvertFrom-SecureString -AsPlainText` (PowerShell 7+)
+   - bash/zsh: `read -rs GITHUB_PERSONAL_ACCESS_TOKEN && export GITHUB_PERSONAL_ACCESS_TOKEN`
+4. Run `claude` in the repo and approve the `github` project server when prompted. Check it with `/mcp`.
 
-The frontend lint currently reports a non-blocking React warning related to state updates inside an effect. It does not fail the lint command.
+If the variable is not set, Claude Code shows a missing-variable warning for the `github` server in `/mcp`.
 
-## Persistence Status
+---
 
-The current backend does **not** use PostgreSQL or another persistent database.
+## Agentic SDLC Cycle
 
-Notes and share links are stored in JavaScript `Map` instances inside the running NestJS process. As a result:
+This project was built following a structured agentic cycle:
 
-- Data exists only while the backend process is running.
-- Restarting the backend clears notes and share links.
-- Starting the application again does not restore previous notes.
-- The launcher scripts do not start PostgreSQL, MinIO, or Redis.
+1. **Requirements** — Clarifying Q&A → `artifacts/requirements.md`
+2. **Architecture** — Component diagrams, tech choices, ADRs → `artifacts/architecture.md`
+3. **Design Review** — Pre-code review of architecture (12 findings) → `artifacts/design-review.md`
+4. **Implementation Plan** — 41 dependency-ordered tasks → `artifacts/impl-plan.md`
+5. **Implementation** — Full backend + frontend (53 files, ~7,500 LOC)
+6. **Code Review** — Peer review (10 findings, all fixed) → `artifacts/code-review.md`
+7. **Tests** — 109 Jest tests + 181 doc checks
+8. **PR** — This pull request, created by Claude Agent Mode
 
-The next persistence phase is planned to add PostgreSQL, migrations, object storage, Redis, and a database-backed notes service. See [impl-plan.md](docs/impl-plan.md) for the dependency-ordered implementation plan.
+---
 
-## Current Limitations
-
-### Authentication and Authorization
-
-- There is no real registration, login, identity provider, session, refresh-token, or CSRF implementation.
-- The development identity is supplied through `x-user-id: demo-user`.
-- A caller who can choose that header can impersonate the demo user.
-- Production authentication and authorization must be implemented before deployment.
-
-### Storage and Attachments
-
-- Notes are stored in memory rather than PostgreSQL.
-- Attachments are not implemented yet.
-- The 30 MB check currently covers the serialized title and text content only.
-- MinIO or cloud object storage is not configured.
-- Signed upload and download URLs are not implemented.
-- Attachment cleanup jobs, retries, and retention jobs are not implemented.
-
-### Rich Text and Security
-
-- The editor is currently a text area, not a Tiptap or Lexical rich-text editor.
-- Backend and frontend rich-text sanitization is not implemented.
-- There is no configured content security policy, rate limiting, audit log, or security scanning pipeline.
-- The public share token is generated securely for the prototype, but token hashes are not persisted because there is no database yet.
-
-### Operations
-
-- There is no Docker Compose environment yet.
-- There are no database migrations, backups, restore procedures, or production deployment configuration.
-- The launcher scripts start application processes only.
-- Observability, distributed tracing, dashboards, and alerting are not configured.
-- The frontend API URL is currently hard-coded to `http://localhost:3000/api/v1`.
-
-### Product Scope
-
-- Real-time collaborative editing is out of scope for v1.
-- Note attachments, multiple users, search, note folders, and link expiration are not currently available.
-- Public shared links are read-only, but full production access controls remain to be implemented.
-
-## Recommended Next Steps
-
-1. Add Docker Compose for PostgreSQL, MinIO, and Redis.
-2. Add environment-based configuration and database migrations.
-3. Replace the in-memory maps with PostgreSQL repositories.
-4. Implement real authentication, sessions, CSRF protection, and rate limits.
-5. Integrate Tiptap or Lexical with backend and frontend sanitization.
-6. Add attachment validation, private object storage, signed URLs, and cleanup jobs.
-7. Add OpenAPI documentation and integration tests for persistence and security.
-8. Add CI/CD, observability, backups, deployment, and rollback runbooks.
-
-## Design Documents
-
-- [Requirements](docs/requirements.md)
-- [Architecture](docs/architecture.md)
-- [Design Review](docs/design-review.md)
-- [Final Review Checklist](docs/final-review-checklist.md)
-- [Implementation Plan](docs/impl-plan.md)
-- [Verification](docs/verification.md)
+*Built with [Claude Agent Mode](https://claude.ai/code) · Anthropic*

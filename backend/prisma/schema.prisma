@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AppointmentStatus {
+  CONFIRMED
+  CANCELLED
+  RESCHEDULED
+}
+
+enum SmsStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum MessageType {
+  BOOKING
+  CANCELLATION
+  RESCHEDULING
+}
+
+model Department {
+  id      String   @id @default(uuid())
+  name    String   @unique
+  doctors Doctor[]
+}
+
+model Doctor {
+  id           String        @id @default(uuid())
+  name         String
+  departmentId String
+  department   Department    @relation(fields: [departmentId], references: [id])
+  appointments Appointment[]
+
+  @@index([departmentId])
+}
+
+model Appointment {
+  id                    String            @id @default(uuid())
+  patientName           String
+  patientPhone          String
+  patientPhoneHash      String
+  doctorId              String
+  appointmentDate       DateTime          @db.Date
+  slotTime              String            @db.VarChar(5)
+  status                AppointmentStatus @default(CONFIRMED)
+  previousAppointmentId String?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  doctor              Doctor        @relation(fields: [doctorId], references: [id])
+  previousAppointment Appointment?  @relation("RescheduleChain", fields: [previousAppointmentId], references: [id])
+  rescheduledTo       Appointment[] @relation("RescheduleChain")
+  smsLogs             SmsLog[]
+
+  @@index([patientPhoneHash], map: "IX_appt_phone_hash")
+  @@index([doctorId, appointmentDate], map: "IX_appt_doctor_date")
+}
+
+model SmsLog {
+  id               String      @id @default(uuid())
+  appointmentId    String
+  messageType      MessageType
+  status           SmsStatus   @default(PENDING)
+  attemptCount     Int         @default(0)
+  twilioMessageSid String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+
+  @@index([status, attemptCount], map: "IX_sms_retry")
+}
+
+model SmsTemplate {
+  id           String      @id @default(uuid())
+  messageType  MessageType @unique
+  templateBody String
+  updatedAt    DateTime    @updatedAt
+}

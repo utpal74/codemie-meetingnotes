@@ -1,0 +1,40 @@
+USER STORY: Phone-Based Doctor Appointment Booking
+
+As a clinic receptionist,
+I want to book, cancel, reschedule, and look up patient appointments while on a phone call,
+so that patients can arrange a doctor visit quickly without registering or using an app.
+
+As a patient,
+I want an SMS after every booking change,
+so that I have the confirmed doctor, date, time, and appointment ID.
+
+CONTEXT
+- HealthCare Clinic is a single branch. Patients phone in, and the receptionist uses a browser app to handle the request.
+- Only the receptionist logs in. Patients do not need an account.
+
+DEPARTMENTS AND DOCTORS (must be configurable without a code change)
+- Cardiology: Dr. Arjun Mehta, Dr. Nisha Kapoor
+- General Medicine: Dr. Priya Sharma, Dr. Suresh Iyer
+- Bone Health (Orthopaedics): Dr. Rajesh Patel, Dr. Ananya Bose
+
+ACCEPTANCE CRITERIA
+1. Booking: the receptionist enters the patient's full name, a 10-digit Indian mobile number, the department, and optionally a doctor. If no doctor is chosen, the system picks one at random from that department.
+2. Slots: appointments are 30 minutes long, between 10:00 AM and 7:00 PM, Monday to Saturday (18 slots per doctor per day, from 10:00 to 18:30). Sundays cannot be booked. The system assigns a random free slot, and the receptionist can choose a specific one instead. A slot can never be double-booked, even when two receptionists book at the same time.
+3. Confirmation: each booking gets a unique appointment ID and status CONFIRMED. The receptionist sees the full appointment details.
+4. Lookup: the receptionist can find appointments by appointment ID or patient phone number.
+5. Cancellation: the receptionist can cancel an appointment. Its status becomes CANCELLED and the slot becomes free again.
+6. Rescheduling: the receptionist can move an appointment to a new slot. The old slot is freed, a new CONFIRMED appointment is created, and it links back to the original appointment.
+7. SMS: the patient receives an SMS after every booking, cancellation, or reschedule. Message templates must be editable without a code change. A failed send is retried at least 3 times, and any send that still fails is shown to the receptionist.
+
+NON-FUNCTIONAL
+- A booking takes under 3 seconds, and a slot lookup takes under 1 second.
+- An untrained receptionist can complete a booking in under 2 minutes.
+- Patient phone numbers are encrypted at rest (AES-256) and never written to logs. Only the phone number is shared with the SMS provider.
+- The system supports at least 10 receptionists working at the same time and 500 appointments per day.
+- Data handling follows India's Digital Personal Data Protection Act, 2023.
+
+OUT OF SCOPE
+Patient self-booking, payments or insurance, medical records, multiple branches, a doctor portal, IVR or voice bots, and WhatsApp, email, or push notifications.
+
+PREFERRED STACK
+React and Tailwind frontend, Node.js/Express API, PostgreSQL with Prisma, Twilio for SMS, and Jest tests.

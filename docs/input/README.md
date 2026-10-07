@@ -1,12 +1,31 @@
-# Word Story Intake
+# docs/input — User Story Drop Zone
 
-Place the `.docx` file itself in this folder, for example `docs/input/story.docx`; do not create another folder around it. Alternatively, supply its full path when starting the SDLC Orchestrator. The orchestrator extracts the document text with `scripts/extract-word-requirements.ps1` and stops if the source is missing, ambiguous, or unreadable.
+Place your user story document here before starting the SDLC pipeline.
 
-The source Word document is the input. `docs/requirements.md` is the reviewed requirements artifact produced from it; the orchestrator does not use an older Markdown artifact as a replacement for a missing Word source.
+## Supported formats
 
-## Run Locally
+| Format | Notes |
+|---|---|
+| `.docx` | Word document — text is extracted automatically via Python/PowerShell |
+| `.txt` | Plain text |
+| `.md` | Markdown |
 
-1. Open the repository folder in VS Code and start a Copilot Chat session with the `SDLC Orchestrator` agent.
-2. Ask it to run the pipeline for `docs/input/story.docx`. Add `local-only` to the request to avoid all commits, pushes, and remote PR creation; the PR author will save a draft to `docs/pr-description.md`.
-3. Answer clarification and approval questions as they arise. The agents write artifacts into the local working tree. Backend/frontend checks require Node.js and installed project dependencies.
-4. GitHub Actions run only after a push or pull request. Local Git hooks are optional and require the one-time setup documented in `.github/hooks/README.md`.
+## How it works
+
+1. Drop your file here (e.g. `user-story.txt`).
+2. The next time you type anything in Claude Code, the `scripts/check-input-hook.js` hook detects the file and automatically triggers the `sdlc-orchestrator` agent. It fires only when the file is newer than `artifacts/requirements.md` (or that file does not exist).
+3. The orchestrator runs all 8 SDLC steps unattended, writes every generated document to the root `artifacts/` folder, and opens a PR when complete.
+
+This `README.md` is never treated as a user story (in any casing: `README.md`, `Readme.md`, `readme.md`), nor are hidden files such as `.gitkeep` or Word lock files (`~$*.docx`).
+
+## Manual trigger
+
+If the auto-trigger does not fire, say:
+
+> "Run the sdlc-orchestrator agent"
+
+or invoke it directly as a subagent type named `sdlc-orchestrator`.
+
+## One file at a time
+
+The pipeline processes one user story per run. Archive or delete the processed file before dropping a new one.
