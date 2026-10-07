@@ -2,8 +2,8 @@ const { Prisma } = require('@prisma/client');
 const prisma = require('../lib/prisma');
 const { encryptPhone, hashPhone } = require('../helpers/crypto');
 const SlotService = require('./SlotService');
+const DoctorService = require('./DoctorService');
 const { Errors } = require('../helpers/errors');
-const logger = require('../helpers/logger');
 
 const APPOINTMENT_INCLUDE = {
   doctor: { include: { department: true } },
@@ -14,6 +14,16 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 async function createAppointment({ patientName, patientPhone, doctorId, appointmentDate, slotTime }) {
   if (!SlotService.validateSlot(slotTime)) {
     throw Errors.INVALID_DATE();
+  }
+
+  // Validate doctor is active and belongs to an active department
+  const doctor = await DoctorService.getActiveDoctorById(doctorId);
+  if (!doctor) {
+    // Could be not found or inactive — check which
+    const anyDoctor = await DoctorService.getDoctorById(doctorId);
+    if (!anyDoctor) throw Errors.DOCTOR_NOT_FOUND();
+    if (!anyDoctor.isActive) throw Errors.DOCTOR_INACTIVE();
+    throw Errors.DEPARTMENT_INACTIVE();
   }
 
   const date = new Date(appointmentDate);
@@ -45,7 +55,9 @@ async function createAppointment({ patientName, patientPhone, doctorId, appointm
     return appointment;
   } catch (err) {
     if (err.code === 'SLOT_UNAVAILABLE') throw err;
-    // Serialization failure (P2034) — another concurrent booking won the race
+    if (err.code === 'DOCTOR_INACTIVE') throw err;
+    if (err.code === 'DEPARTMENT_INACTIVE') throw err;
+    // Serialization failure (P2034) - another concurrent booking won the race
     if (err.code === 'P2034') throw Errors.SLOT_UNAVAILABLE();
     throw err;
   }
@@ -137,4 +149,11 @@ async function rescheduleAppointment(id, { appointmentDate, slotTime }) {
   }
 }
 
-module.exports = { createAppointment, findById, findByPhone, findByIdOrPhone, cancelAppointment, rescheduleAppointment };
+module.exports = {
+  createAppointment,
+  findById,
+  findByPhone,
+  findByIdOrPhone,
+  cancelAppointment,
+  rescheduleAppointment,
+};

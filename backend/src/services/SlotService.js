@@ -1,4 +1,6 @@
 const prisma = require('../lib/prisma');
+const DoctorService = require('./DoctorService');
+const { Errors } = require('../helpers/errors');
 
 const SLOT_START_HOUR = 10;
 const SLOT_END_HOUR = 19;
@@ -16,6 +18,15 @@ function generateAllSlots() {
 }
 
 async function getAvailableSlots(doctorId, date) {
+  // Prevent slot discovery for inactive doctors/departments (new bookings only)
+  const doctor = await DoctorService.getActiveDoctorById(doctorId);
+  if (!doctor) {
+    const anyDoctor = await DoctorService.getDoctorById(doctorId);
+    if (!anyDoctor) throw Errors.DOCTOR_NOT_FOUND();
+    if (!anyDoctor.isActive) throw Errors.DOCTOR_INACTIVE();
+    throw Errors.DEPARTMENT_INACTIVE();
+  }
+
   const allSlots = generateAllSlots();
   const appointmentDate = new Date(date);
 

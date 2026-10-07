@@ -1,0 +1,783 @@
+{
+  "testCases": [
+    {
+      "id": "TC-001",
+      "suite": "Auth",
+      "file": "admin-auth.test.js",
+      "desc": "GET /api/admin/departments 401 unauthenticated",
+      "ac": [
+        "AC1"
+      ],
+      "type": "negative",
+      "expected": "HTTP 401 UNAUTHORIZED"
+    },
+    {
+      "id": "TC-002",
+      "suite": "Auth",
+      "file": "admin-auth.test.js",
+      "desc": "GET /api/admin/departments 403 for RECEPTIONIST",
+      "ac": [
+        "AC1"
+      ],
+      "type": "negative",
+      "expected": "HTTP 403 FORBIDDEN"
+    },
+    {
+      "id": "TC-003",
+      "suite": "Auth",
+      "file": "admin-auth.test.js",
+      "desc": "GET /api/admin/doctors 401 unauthenticated",
+      "ac": [
+        "AC1"
+      ],
+      "type": "negative",
+      "expected": "HTTP 401 UNAUTHORIZED"
+    },
+    {
+      "id": "TC-004",
+      "suite": "Auth",
+      "file": "admin-auth.test.js",
+      "desc": "GET /api/admin/doctors 403 for RECEPTIONIST",
+      "ac": [
+        "AC1"
+      ],
+      "type": "negative",
+      "expected": "HTTP 403 FORBIDDEN"
+    },
+    {
+      "id": "TC-005",
+      "suite": "Auth",
+      "file": "admin-auth.test.js",
+      "desc": "POST /api/admin/departments 401 unauthenticated",
+      "ac": [
+        "AC1"
+      ],
+      "type": "negative",
+      "expected": "HTTP 401 UNAUTHORIZED"
+    },
+    {
+      "id": "TC-006",
+      "suite": "Auth",
+      "file": "admin-auth.test.js",
+      "desc": "POST /api/admin/departments 403 for RECEPTIONIST",
+      "ac": [
+        "AC1"
+      ],
+      "type": "negative",
+      "expected": "HTTP 403 FORBIDDEN"
+    },
+    {
+      "id": "TC-007",
+      "suite": "Auth",
+      "file": "admin-auth.test.js",
+      "desc": "GET /api/admin/departments 200 for ADMIN",
+      "ac": [
+        "AC1"
+      ],
+      "type": "positive",
+      "expected": "HTTP 200 array"
+    },
+    {
+      "id": "TC-008",
+      "suite": "Auth",
+      "file": "admin-auth.test.js",
+      "desc": "auth/me returns role RECEPTIONIST",
+      "ac": [
+        "AC1"
+      ],
+      "type": "positive",
+      "expected": "role=RECEPTIONIST"
+    },
+    {
+      "id": "TC-009",
+      "suite": "Auth",
+      "file": "admin-auth.test.js",
+      "desc": "auth/me returns role ADMIN",
+      "ac": [
+        "AC1"
+      ],
+      "type": "positive",
+      "expected": "role=ADMIN"
+    },
+    {
+      "id": "TC-010",
+      "suite": "Departments",
+      "file": "admin-departments.test.js",
+      "desc": "Admin list includes active and inactive departments",
+      "ac": [
+        "AC7"
+      ],
+      "type": "positive",
+      "expected": "Both Cardiology and Bone Health returned"
+    },
+    {
+      "id": "TC-011",
+      "suite": "Departments",
+      "file": "admin-departments.test.js",
+      "desc": "Create department with unique name",
+      "ac": [
+        "AC2"
+      ],
+      "type": "positive",
+      "expected": "HTTP 201 isActive=true"
+    },
+    {
+      "id": "TC-012",
+      "suite": "Departments",
+      "file": "admin-departments.test.js",
+      "desc": "Create duplicate name exact match returns 409",
+      "ac": [
+        "AC3"
+      ],
+      "type": "negative",
+      "expected": "HTTP 409 DEPARTMENT_NAME_TAKEN field=name"
+    },
+    {
+      "id": "TC-013",
+      "suite": "Departments",
+      "file": "admin-departments.test.js",
+      "desc": "Create lowercase duplicate returns 409",
+      "ac": [
+        "AC3"
+      ],
+      "type": "negative",
+      "expected": "HTTP 409 DEPARTMENT_NAME_TAKEN"
+    },
+    {
+      "id": "TC-014",
+      "suite": "Departments",
+      "file": "admin-departments.test.js",
+      "desc": "Create UPPERCASE duplicate returns 409",
+      "ac": [
+        "AC3"
+      ],
+      "type": "negative",
+      "expected": "HTTP 409 DEPARTMENT_NAME_TAKEN"
+    },
+    {
+      "id": "TC-015",
+      "suite": "Departments",
+      "file": "admin-departments.test.js",
+      "desc": "Create 1-char name returns 422",
+      "ac": [
+        "AC21"
+      ],
+      "type": "boundary",
+      "expected": "HTTP 422"
+    },
+    {
+      "id": "TC-016",
+      "suite": "Departments",
+      "file": "admin-departments.test.js",
+      "desc": "Create 101-char name returns 422",
+      "ac": [
+        "AC21"
+      ],
+      "type": "boundary",
+      "expected": "HTTP 422"
+    },
+    {
+      "id": "TC-017",
+      "suite": "Departments",
+      "file": "admin-departments.test.js",
+      "desc": "Create exactly 2-char name accepted",
+      "ac": [
+        "AC21"
+      ],
+      "type": "boundary",
+      "expected": "HTTP 201"
+    },
+    {
+      "id": "TC-018",
+      "suite": "Departments",
+      "file": "admin-departments.test.js",
+      "desc": "Create exactly 100-char name accepted",
+      "ac": [
+        "AC21"
+      ],
+      "type": "boundary",
+      "expected": "HTTP 201"
+    },
+    {
+      "id": "TC-019",
+      "suite": "Departments",
+      "file": "admin-departments.test.js",
+      "desc": "Rename department",
+      "ac": [
+        "AC4"
+      ],
+      "type": "positive",
+      "expected": "HTTP 200 updated name"
+    },
+    {
+      "id": "TC-020",
+      "suite": "Departments",
+      "file": "admin-departments.test.js",
+      "desc": "Rename to case-insensitive duplicate returns 409",
+      "ac": [
+        "AC4"
+      ],
+      "type": "negative",
+      "expected": "HTTP 409 DEPARTMENT_NAME_TAKEN"
+    },
+    {
+      "id": "TC-021",
+      "suite": "Departments",
+      "desc": "Rename to own name is allowed",
+      "ac": [
+        "AC4"
+      ],
+      "type": "positive",
+      "expected": "HTTP 200"
+    },
+    {
+      "id": "TC-022",
+      "suite": "Departments",
+      "desc": "PATCH non-existent dept returns 404",
+      "ac": [
+        "AC4"
+      ],
+      "type": "negative",
+      "expected": "HTTP 404 DEPARTMENT_NOT_FOUND"
+    },
+    {
+      "id": "TC-023",
+      "suite": "Departments",
+      "desc": "Deactivate active department",
+      "ac": [
+        "AC5"
+      ],
+      "type": "positive",
+      "expected": "HTTP 200 isActive=false"
+    },
+    {
+      "id": "TC-024",
+      "suite": "Departments",
+      "desc": "Activate inactive department",
+      "ac": [
+        "AC6"
+      ],
+      "type": "positive",
+      "expected": "HTTP 200 isActive=true"
+    },
+    {
+      "id": "TC-025",
+      "suite": "Departments",
+      "desc": "Status PATCH non-existent dept returns 404",
+      "ac": [
+        "AC5",
+        "AC6"
+      ],
+      "type": "negative",
+      "expected": "HTTP 404"
+    },
+    {
+      "id": "TC-026",
+      "suite": "Departments",
+      "desc": "Status PATCH missing isActive returns 422",
+      "ac": [
+        "AC5"
+      ],
+      "type": "negative",
+      "expected": "HTTP 422"
+    },
+    {
+      "id": "TC-027",
+      "suite": "Departments",
+      "desc": "Receptionist list excludes inactive departments",
+      "ac": [
+        "AC7"
+      ],
+      "type": "positive",
+      "expected": "Inactive dept absent"
+    },
+    {
+      "id": "TC-028",
+      "suite": "Doctors",
+      "desc": "Admin list returns all doctors",
+      "ac": [
+        "AC8"
+      ],
+      "type": "positive",
+      "expected": "HTTP 200 with inactive included"
+    },
+    {
+      "id": "TC-029",
+      "suite": "Doctors",
+      "desc": "Filter status=active returns only active",
+      "ac": [
+        "AC16"
+      ],
+      "type": "positive",
+      "expected": "All isActive=true"
+    },
+    {
+      "id": "TC-030",
+      "suite": "Doctors",
+      "desc": "Filter status=inactive returns only inactive",
+      "ac": [
+        "AC16"
+      ],
+      "type": "positive",
+      "expected": "All isActive=false"
+    },
+    {
+      "id": "TC-031",
+      "suite": "Doctors",
+      "desc": "Filter by departmentId",
+      "ac": [
+        "AC17"
+      ],
+      "type": "positive",
+      "expected": "Only matching dept doctors"
+    },
+    {
+      "id": "TC-032",
+      "suite": "Doctors",
+      "desc": "Create doctor with valid data",
+      "ac": [
+        "AC8"
+      ],
+      "type": "positive",
+      "expected": "HTTP 201 with dept object"
+    },
+    {
+      "id": "TC-033",
+      "suite": "Doctors",
+      "desc": "Create doctor non-existent deptId returns 404",
+      "ac": [
+        "AC9"
+      ],
+      "type": "negative",
+      "expected": "HTTP 404 DEPARTMENT_NOT_FOUND"
+    },
+    {
+      "id": "TC-034",
+      "suite": "Doctors",
+      "desc": "Create doctor 1-char name returns 422",
+      "ac": [
+        "AC8"
+      ],
+      "type": "boundary",
+      "expected": "HTTP 422"
+    },
+    {
+      "id": "TC-035",
+      "suite": "Doctors",
+      "desc": "Create doctor non-UUID deptId returns 422",
+      "ac": [
+        "AC8"
+      ],
+      "type": "negative",
+      "expected": "HTTP 422"
+    },
+    {
+      "id": "TC-036",
+      "suite": "Doctors",
+      "desc": "Rename doctor",
+      "ac": [
+        "AC10"
+      ],
+      "type": "positive",
+      "expected": "HTTP 200 updated name"
+    },
+    {
+      "id": "TC-037",
+      "suite": "Doctors",
+      "desc": "Reassign doctor to different department",
+      "ac": [
+        "AC10"
+      ],
+      "type": "positive",
+      "expected": "HTTP 200 updated dept"
+    },
+    {
+      "id": "TC-038",
+      "suite": "Doctors",
+      "desc": "Reassign to non-existent dept returns 404",
+      "ac": [
+        "AC9"
+      ],
+      "type": "negative",
+      "expected": "HTTP 404 DEPARTMENT_NOT_FOUND"
+    },
+    {
+      "id": "TC-039",
+      "suite": "Doctors",
+      "desc": "PATCH non-existent doctor returns 404",
+      "ac": [
+        "AC10"
+      ],
+      "type": "negative",
+      "expected": "HTTP 404 DOCTOR_NOT_FOUND"
+    },
+    {
+      "id": "TC-040",
+      "suite": "Doctors",
+      "desc": "Deactivate active doctor",
+      "ac": [
+        "AC11"
+      ],
+      "type": "positive",
+      "expected": "HTTP 200 isActive=false"
+    },
+    {
+      "id": "TC-041",
+      "suite": "Doctors",
+      "desc": "Activate inactive doctor in active dept",
+      "ac": [
+        "AC12"
+      ],
+      "type": "positive",
+      "expected": "HTTP 200 isActive=true"
+    },
+    {
+      "id": "TC-042",
+      "suite": "Doctors",
+      "desc": "Activate doctor in inactive dept returns 409",
+      "ac": [
+        "AC13"
+      ],
+      "type": "negative",
+      "expected": "HTTP 409 DEPARTMENT_INACTIVE"
+    },
+    {
+      "id": "TC-043",
+      "suite": "Doctors",
+      "desc": "Status PATCH non-existent doctor returns 404",
+      "ac": [
+        "AC11"
+      ],
+      "type": "negative",
+      "expected": "HTTP 404 DOCTOR_NOT_FOUND"
+    },
+    {
+      "id": "TC-044",
+      "suite": "Doctors",
+      "desc": "Status PATCH missing isActive returns 422",
+      "ac": [
+        "AC11"
+      ],
+      "type": "negative",
+      "expected": "HTTP 422"
+    },
+    {
+      "id": "TC-045",
+      "suite": "Doctors",
+      "desc": "Receptionist list excludes inactive doctors",
+      "ac": [
+        "AC14"
+      ],
+      "type": "positive",
+      "expected": "Inactive doctor absent"
+    },
+    {
+      "id": "TC-046",
+      "suite": "Doctors",
+      "desc": "Receptionist list excludes docs in inactive depts",
+      "ac": [
+        "AC15"
+      ],
+      "type": "positive",
+      "expected": "Doctor absent when dept inactive"
+    },
+    {
+      "id": "TC-047",
+      "suite": "UI-Departments",
+      "desc": "Departments page loads with all UI elements",
+      "ac": [
+        "AC19"
+      ],
+      "type": "positive",
+      "expected": "Heading, table, New button visible"
+    },
+    {
+      "id": "TC-048",
+      "suite": "UI-Departments",
+      "desc": "Create department via modal",
+      "ac": [
+        "AC2",
+        "AC19"
+      ],
+      "type": "positive",
+      "expected": "Row appears with Active"
+    },
+    {
+      "id": "TC-049",
+      "suite": "UI-Departments",
+      "desc": "Duplicate name shows inline error",
+      "ac": [
+        "AC3",
+        "AC19"
+      ],
+      "type": "negative",
+      "expected": "Error text visible in modal"
+    },
+    {
+      "id": "TC-050",
+      "suite": "UI-Departments",
+      "desc": "Search filters table rows",
+      "ac": [
+        "AC19"
+      ],
+      "type": "positive",
+      "expected": "Non-matching rows hidden"
+    },
+    {
+      "id": "TC-051",
+      "suite": "UI-Departments",
+      "desc": "Edit modal updates department name",
+      "ac": [
+        "AC4",
+        "AC19"
+      ],
+      "type": "positive",
+      "expected": "Updated name in table"
+    },
+    {
+      "id": "TC-052",
+      "suite": "UI-Departments",
+      "desc": "Deactivate button updates status badge",
+      "ac": [
+        "AC5",
+        "AC19"
+      ],
+      "type": "positive",
+      "expected": "Inactive badge and Activate button"
+    },
+    {
+      "id": "TC-053",
+      "suite": "UI-Departments",
+      "desc": "Activate button updates status badge",
+      "ac": [
+        "AC6",
+        "AC19"
+      ],
+      "type": "positive",
+      "expected": "Active badge and Deactivate button"
+    },
+    {
+      "id": "TC-054",
+      "suite": "UI-Doctors",
+      "desc": "Doctors page loads with all UI elements",
+      "ac": [
+        "AC20"
+      ],
+      "type": "positive",
+      "expected": "Heading, filters, table, New button"
+    },
+    {
+      "id": "TC-055",
+      "suite": "UI-Doctors",
+      "desc": "Create doctor via modal",
+      "ac": [
+        "AC8",
+        "AC20"
+      ],
+      "type": "positive",
+      "expected": "Row appears"
+    },
+    {
+      "id": "TC-056",
+      "suite": "UI-Doctors",
+      "desc": "Department filter restricts rows",
+      "ac": [
+        "AC20"
+      ],
+      "type": "positive",
+      "expected": "Only selected dept rows visible"
+    },
+    {
+      "id": "TC-057",
+      "suite": "UI-Doctors",
+      "desc": "Status filter active hides inactive rows",
+      "ac": [
+        "AC20"
+      ],
+      "type": "positive",
+      "expected": "Only Active rows visible"
+    },
+    {
+      "id": "TC-058",
+      "suite": "UI-Doctors",
+      "desc": "Deactivate button updates doctor status",
+      "ac": [
+        "AC11",
+        "AC20"
+      ],
+      "type": "positive",
+      "expected": "Inactive badge appears"
+    },
+    {
+      "id": "TC-059",
+      "suite": "UI-Doctors",
+      "desc": "Activate in inactive dept shows browser alert",
+      "ac": [
+        "AC13",
+        "AC20"
+      ],
+      "type": "negative",
+      "expected": "Alert shown, status unchanged"
+    },
+    {
+      "id": "TC-060",
+      "suite": "UI-Doctors",
+      "desc": "Dept inactive badge visible for doctor",
+      "ac": [
+        "AC20"
+      ],
+      "type": "positive",
+      "expected": "Dept inactive badge visible"
+    },
+    {
+      "id": "TC-061",
+      "suite": "UI-Doctors",
+      "desc": "Edit doctor name via modal",
+      "ac": [
+        "AC10",
+        "AC20"
+      ],
+      "type": "positive",
+      "expected": "Updated name in table"
+    }
+  ],
+  "story": "EPMCDMETST-68125",
+  "title": "Admin UI to manage Departments and Doctors",
+  "generatedDate": "2026-10-07",
+  "totalTestCases": 61,
+  "testFiles": {
+    "features": [
+      "tests/features/admin-departments.feature",
+      "tests/features/admin-doctors.feature",
+      "tests/features/admin-booking-filter.feature",
+      "tests/features/admin-ui.feature"
+    ],
+    "integration": [
+      "tests/integration/admin-auth.test.js",
+      "tests/integration/admin-departments.test.js",
+      "tests/integration/admin-doctors.test.js"
+    ],
+    "e2e": [
+      "tests/e2e/admin-departments.spec.ts",
+      "tests/e2e/admin-doctors.spec.ts"
+    ]
+  },
+  "acCoverage": {
+    "AC1": [
+      "TC-001",
+      "TC-002",
+      "TC-003",
+      "TC-004",
+      "TC-005",
+      "TC-006",
+      "TC-007",
+      "TC-008",
+      "TC-009"
+    ],
+    "AC2": [
+      "TC-011",
+      "TC-048"
+    ],
+    "AC3": [
+      "TC-012",
+      "TC-013",
+      "TC-014",
+      "TC-049"
+    ],
+    "AC4": [
+      "TC-019",
+      "TC-020",
+      "TC-021",
+      "TC-022",
+      "TC-051"
+    ],
+    "AC5": [
+      "TC-023",
+      "TC-025",
+      "TC-026",
+      "TC-052"
+    ],
+    "AC6": [
+      "TC-024",
+      "TC-025",
+      "TC-053"
+    ],
+    "AC7": [
+      "TC-010",
+      "TC-027"
+    ],
+    "AC8": [
+      "TC-032",
+      "TC-034",
+      "TC-035",
+      "TC-055"
+    ],
+    "AC9": [
+      "TC-033",
+      "TC-038"
+    ],
+    "AC10": [
+      "TC-036",
+      "TC-037",
+      "TC-039",
+      "TC-061"
+    ],
+    "AC11": [
+      "TC-040",
+      "TC-043",
+      "TC-044",
+      "TC-058"
+    ],
+    "AC12": [
+      "TC-041"
+    ],
+    "AC13": [
+      "TC-042",
+      "TC-059"
+    ],
+    "AC14": [
+      "TC-045"
+    ],
+    "AC15": [
+      "TC-046"
+    ],
+    "AC16": [
+      "TC-029",
+      "TC-030"
+    ],
+    "AC17": [
+      "TC-031"
+    ],
+    "AC18": [],
+    "AC19": [
+      "TC-047",
+      "TC-048",
+      "TC-049",
+      "TC-050",
+      "TC-051",
+      "TC-052",
+      "TC-053"
+    ],
+    "AC20": [
+      "TC-054",
+      "TC-055",
+      "TC-056",
+      "TC-057",
+      "TC-058",
+      "TC-059",
+      "TC-060",
+      "TC-061"
+    ],
+    "AC21": [
+      "TC-015",
+      "TC-016",
+      "TC-017",
+      "TC-018"
+    ]
+  },
+  "notes": [
+    "AC18 (historical appointments reference inactive doctor) requires seeded appointment data; manual verification recommended.",
+    "Playwright E2E tests require the app running locally. Set BASE_URL, ADMIN_USERNAME, ADMIN_PASSWORD env vars.",
+    "Integration tests require DATABASE_URL pointing at a dedicated test PostgreSQL database."
+  ]
+}

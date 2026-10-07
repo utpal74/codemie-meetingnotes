@@ -1,0 +1,25 @@
+﻿# Frontend .dockerignore
+# Keeps the build context lean -- only source files reach the Docker daemon.
+
+node_modules
+.npm
+
+# Vite build output (regenerated in the builder stage)
+dist
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Version control
+.git
+.gitignore
+
+# Docker files
+Dockerfile
+.dockerignore
+
+# Docs
+README.md
+*.md

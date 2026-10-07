@@ -1,0 +1,29 @@
+﻿# =============================================================================
+# docker-compose.prod.yml -- Production overrides
+# =============================================================================
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# This file overrides settings that differ between local dev and production:
+#   - Removes bind-mount volume on api (no live reload in prod)
+#   - Forces NODE_ENV=production
+#   - Configures database to NOT expose its port externally (internal only)
+# =============================================================================
+
+version: '3.9'
+
+services:
+
+  db:
+    # Do not expose the DB port to the host in production
+    ports: []
+
+  api:
+    environment:
+      NODE_ENV: production
+    # No source bind-mounts in production
+    volumes: []
+
+  frontend:
+    # No source bind-mounts in production
+    volumes: []

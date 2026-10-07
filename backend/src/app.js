@@ -6,6 +6,7 @@ const rateLimit = require('express-rate-limit');
 const pinoHttp = require('pino-http');
 const logger = require('./helpers/logger');
 const { authenticate } = require('./middleware/authenticate');
+const { requireRole } = require('./middleware/requireRole');
 
 const healthRouter = require('./routes/health');
 const authRouter = require('./routes/auth');
@@ -14,12 +15,17 @@ const doctorsRouter = require('./routes/doctors');
 const slotsRouter = require('./routes/slots');
 const appointmentsRouter = require('./routes/appointments');
 
+const adminDepartmentsRouter = require('./routes/admin/departments');
+const adminDoctorsRouter = require('./routes/admin/doctors');
+
 const app = express();
 
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGIN || 'http://localhost:3000',
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: process.env.ALLOWED_ORIGIN || 'http://localhost:3000',
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 
@@ -29,17 +35,19 @@ const sessionSecret = process.env.SESSION_SECRET;
 if (!sessionSecret && process.env.NODE_ENV === 'production') {
   throw new Error('SESSION_SECRET environment variable is required in production');
 }
-app.use(session({
-  secret: sessionSecret || 'dev-secret-not-for-production',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 8 * 60 * 60 * 1000,
-  },
-}));
+app.use(
+  session({
+    secret: sessionSecret || 'dev-secret-not-for-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 8 * 60 * 60 * 1000,
+    },
+  })
+);
 
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -55,9 +63,13 @@ app.use('/api/auth', authRouter);
 
 // Protected routes — require a valid session
 app.use('/api/departments', authenticate, departmentsRouter);
-app.use('/api/doctors',     authenticate, doctorsRouter);
-app.use('/api/slots',       authenticate, slotsRouter);
-app.use('/api/appointments',authenticate, appointmentsRouter);
+app.use('/api/doctors', authenticate, doctorsRouter);
+app.use('/api/slots', authenticate, slotsRouter);
+app.use('/api/appointments', authenticate, appointmentsRouter);
+
+// Admin routes — require ADMIN role
+app.use('/api/admin/departments', authenticate, requireRole('ADMIN'), adminDepartmentsRouter);
+app.use('/api/admin/doctors', authenticate, requireRole('ADMIN'), adminDoctorsRouter);
 
 // Global error handler — only domain errors (status < 500) expose their message
 app.use((err, req, res, _next) => {

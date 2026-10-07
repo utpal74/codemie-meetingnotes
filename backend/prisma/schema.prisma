@@ -26,19 +26,30 @@ enum MessageType {
 }
 
 model Department {
-  id      String   @id @default(uuid())
-  name    String   @unique
+  id        String   @id @default(uuid())
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   doctors Doctor[]
+
+  @@index([isActive])
 }
 
 model Doctor {
   id           String        @id @default(uuid())
   name         String
   departmentId String
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
   department   Department    @relation(fields: [departmentId], references: [id])
   appointments Appointment[]
 
   @@index([departmentId])
+  @@index([isActive])
 }
 
 model Appointment {

@@ -13,13 +13,17 @@ const testEnv = {
   LOG_LEVEL: 'silent',
 };
 
-const DB_CONTAINER = 'doc-appointment-booking-db-1';
+const DB_CONTAINER = process.env.TEST_DB_CONTAINER || 'doc-appointment-booking-db-1';
 
 function dockerPsql(sql) {
   execSync(`docker exec ${DB_CONTAINER} psql -U postgres -c "${sql}"`, { stdio: 'pipe' });
 }
 
 module.exports = async () => {
+  // Always allow unit tests to run without requiring the DB container.
+  // Integration tests depend on dockerised Postgres.
+  const isIntegrationRun = (process.argv || []).some((a) => a.includes('integration'));
+
   // In CI the workflow creates appointments_test, runs migrations, and seeds
   // before npm test is invoked — nothing to do here.
   if (process.env.CI) {
@@ -27,9 +31,37 @@ module.exports = async () => {
     return;
   }
 
+  if (!isIntegrationRun) {
+    console.log('\n[test setup] Unit test run — skipping DB setup.\n');
+    return;
+  }
+
+  // If integration tests are running, require dockerised Postgres.
+  try {
+    const running = execSync(`docker inspect -f "{{.State.Running}}" ${DB_CONTAINER}`, { stdio: 'pipe' })
+      .toString()
+      .trim();
+    if (running !== 'true') {
+      throw new Error('container not running');
+    }
+  } catch (_) {
+    throw new Error(
+      `Test DB container '${DB_CONTAINER}' is required for integration tests. ` +
+        `Start it (docker compose up -d) or set TEST_DB_CONTAINER.`
+    );
+  }
+
   console.log('\n[test setup] Creating test database...');
-  try { dockerPsql('DROP DATABASE IF EXISTS appointments_test WITH (FORCE)'); } catch (_) { /* older PG */ }
-  try { dockerPsql('DROP DATABASE IF EXISTS appointments_test'); } catch (_) { /* ignore */ }
+  try {
+    dockerPsql('DROP DATABASE IF EXISTS appointments_test WITH (FORCE)');
+  } catch (_) {
+    /* older PG */
+  }
+  try {
+    dockerPsql('DROP DATABASE IF EXISTS appointments_test');
+  } catch (_) {
+    /* ignore */
+  }
   dockerPsql('CREATE DATABASE appointments_test');
 
   console.log('[test setup] Running migrations...');
