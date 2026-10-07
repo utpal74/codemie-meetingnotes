@@ -8,4 +8,8 @@ module.exports = {
   collectCoverageFrom: ['src/**/*.js', '!src/server.js'],
   coverageReporters: ['text', 'lcov'],
   verbose: true,
+  // Avoid hanging test runs due to open handles (e.g., prisma connection) when DB isn't available.
+  // Individual tests should ensure prisma is disconnected when they use it.
+  detectOpenHandles: true,
+  forceExit: true,
 };
