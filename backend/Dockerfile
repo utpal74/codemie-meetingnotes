@@ -8,6 +8,9 @@
 #   prod-deps  -- install only production deps for a lean final image
 #   runner     -- minimal Alpine image that runs the Express API
 #
+# NOTE: Prisma 5 query engine requires libssl (openssl) at runtime on Alpine.
+# We install openssl in the deps/prisma-gen stages AND in the final runner.
+#
 
 # -------------------------------------------------------------------
 # Stage 1 -- deps
@@ -16,6 +19,9 @@
 FROM node:20-alpine AS deps
 
 WORKDIR /app
+
+# openssl is required by the Prisma query engine on Alpine Linux
+RUN apk add --no-cache openssl
 
 COPY package*.json ./
 RUN npm ci --include=dev
@@ -44,6 +50,9 @@ RUN npm ci --omit=dev
 # Stage 4 -- runner  (final production image)
 # -------------------------------------------------------------------
 FROM node:20-alpine AS runner
+
+# openssl required at runtime by the Prisma query engine on Alpine
+RUN apk add --no-cache openssl
 
 # Security: run as non-root
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
