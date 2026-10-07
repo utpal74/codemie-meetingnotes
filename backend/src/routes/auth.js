@@ -20,6 +20,26 @@ const loginLimiter = rateLimit({
 router.post('/login', loginLimiter, validate(LoginSchema), async (req, res, next) => {
   try {
     const { username, password } = req.body;
+
+    // --- Admin credentials check ---
+    const adminUsername = process.env.ADMIN_USERNAME || 'admin';
+    const adminHash = process.env.ADMIN_PASSWORD_HASH;
+
+    if (adminHash && username === adminUsername) {
+      const passwordMatch = await bcrypt.compare(password, adminHash);
+      if (passwordMatch) {
+        req.session.authenticated = true;
+        req.session.user = { username, role: 'ADMIN' };
+        logger.info({ username }, 'Admin logged in');
+        return res.json({ message: 'Login successful', role: 'ADMIN' });
+      }
+      // Username matched admin but password wrong — fall through to fail
+      logger.warn({ username }, 'Failed admin login attempt');
+      const err = Errors.INVALID_CREDENTIALS();
+      return res.status(err.status).json({ error: { code: err.code, message: err.message, field: null } });
+    }
+
+    // --- Receptionist credentials check ---
     const expectedUsername = process.env.RECEPTIONIST_USERNAME || 'receptionist';
     const expectedHash = process.env.RECEPTIONIST_PASSWORD_HASH;
 
@@ -40,8 +60,9 @@ router.post('/login', loginLimiter, validate(LoginSchema), async (req, res, next
     }
 
     req.session.authenticated = true;
+    req.session.user = { username, role: 'RECEPTIONIST' };
     logger.info({ username }, 'Receptionist logged in');
-    res.json({ message: 'Login successful' });
+    res.json({ message: 'Login successful', role: 'RECEPTIONIST' });
   } catch (err) {
     next(err);
   }
@@ -55,7 +76,9 @@ router.post('/logout', authenticate, (req, res) => {
 });
 
 router.get('/me', (req, res) => {
-  res.json({ authenticated: !!(req.session && req.session.authenticated) });
+  const authenticated = !!(req.session && req.session.authenticated);
+  const role = authenticated ? (req.session.user?.role || 'RECEPTIONIST') : null;
+  res.json({ authenticated, role });
 });
 
 module.exports = router;
