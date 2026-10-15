@@ -150,11 +150,18 @@ setup_env() {
     " 2>/dev/null)
     if [[ -n "$hash" ]]; then
       # Replace the empty RECEPTIONIST_PASSWORD_HASH line
-      sed -i.bak "s|^RECEPTIONIST_PASSWORD_HASH=.*|RECEPTIONIST_PASSWORD_HASH=${hash}|" "$env_file" && rm -f "${env_file}.bak"
+      # Single-quote the hash: bcrypt hashes contain '$' and Docker Compose would
+      # otherwise interpolate them in env_file (mangling the hash, breaking login).
+      sed -i.bak "s|^RECEPTIONIST_PASSWORD_HASH=.*|RECEPTIONIST_PASSWORD_HASH='${hash}'|" "$env_file" && rm -f "${env_file}.bak"
       success "Password hash written to .env  (default login: receptionist / admin123)"
     else
       warn "Could not generate hash — install backend deps first, then re-run"
     fi
+  elif [[ "${current_hash:0:1}" != "'" && "${current_hash:0:1}" != '"' ]]; then
+    # Existing unquoted hash: quote it so `docker compose` does not expand the '$' segments.
+    info "Quoting RECEPTIONIST_PASSWORD_HASH in .env (required for Docker Compose)"
+    sed -i.bak "s|^RECEPTIONIST_PASSWORD_HASH=.*|RECEPTIONIST_PASSWORD_HASH='${current_hash}'|" "$env_file" && rm -f "${env_file}.bak"
+    success "RECEPTIONIST_PASSWORD_HASH quoted"
   else
     success "RECEPTIONIST_PASSWORD_HASH already set"
   fi

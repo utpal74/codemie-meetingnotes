@@ -189,7 +189,9 @@ function Initialize-EnvFile {
             $hash = node -e "require('bcrypt').hash('admin123',10).then(function(h){process.stdout.write(h)})" 2>&1
             if ($hash -and $hash.ToString().StartsWith('$2b$')) {
                 $escaped = $hash.ToString().Replace('\', '\\')
-                $content = $content -replace 'RECEPTIONIST_PASSWORD_HASH=.*', "RECEPTIONIST_PASSWORD_HASH=$escaped"
+                # Single-quote the hash: bcrypt hashes contain '$' and Docker Compose would
+                # otherwise interpolate them in env_file (mangling the hash, breaking login).
+                $content = [regex]::Replace($content, 'RECEPTIONIST_PASSWORD_HASH=.*', { param($m) "RECEPTIONIST_PASSWORD_HASH='$escaped'" })
                 [System.IO.File]::WriteAllText($EnvFile, $content, [System.Text.Encoding]::UTF8)
                 Write-Success "Password hash written to .env  (login: receptionist / admin123)"
             } else {
@@ -200,6 +202,13 @@ function Initialize-EnvFile {
         } finally {
             Pop-Location
         }
+    } elseif (-not ($currentHash.StartsWith("'") -or $currentHash.StartsWith('"'))) {
+        # Existing unquoted hash: quote it so `docker compose` does not expand the '$' segments.
+        Write-Info 'Quoting RECEPTIONIST_PASSWORD_HASH in .env (required for Docker Compose)'
+        $quoted = "RECEPTIONIST_PASSWORD_HASH='$currentHash'"
+        $content = [regex]::Replace($content, 'RECEPTIONIST_PASSWORD_HASH=.*', { param($m) $quoted })
+        [System.IO.File]::WriteAllText($EnvFile, $content, [System.Text.Encoding]::UTF8)
+        Write-Success 'RECEPTIONIST_PASSWORD_HASH quoted'
     } else {
         Write-Success 'RECEPTIONIST_PASSWORD_HASH already set'
     }
@@ -214,6 +223,10 @@ function Import-EnvFile {
         $idx = $line.IndexOf('=')
         $key = $line.Substring(0, $idx).Trim()
         $val = $line.Substring($idx + 1).Trim()
+        # Strip matching surrounding quotes (same behaviour as dotenv / docker compose)
+        if ($val.Length -ge 2 -and (($val.StartsWith("'") -and $val.EndsWith("'")) -or ($val.StartsWith('"') -and $val.EndsWith('"')))) {
+            $val = $val.Substring(1, $val.Length - 2)
+        }
         if ($key -and -not [System.Environment]::GetEnvironmentVariable($key)) {
             [System.Environment]::SetEnvironmentVariable($key, $val, 'Process')
         }

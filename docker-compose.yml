@@ -1,4 +1,5 @@
-version: '3.9'
+# Fixed project name: backend/__tests__/setup/globalSetup.js runs `docker exec doc-appointment-booking-db-1 ...`
+name: doc-appointment-booking
 
 services:
   db:
