@@ -21,18 +21,30 @@ const LoginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
-const BookAppointmentSchema = z.object({
-  patientName: z.string().min(2, 'Patient name must be at least 2 characters'),
-  patientPhone: z.string().regex(PHONE_REGEX, 'Must be a valid 10-digit Indian mobile number'),
-  doctorId: z.string().regex(UUID_REGEX, 'Invalid doctor ID'),
-  appointmentDate: z
-    .string()
-    .refine(isNotPast, { message: 'Appointment date cannot be in the past' })
-    .refine(isWeekday, { message: 'Appointments are not available on Sundays' }),
-  slotTime: z
-    .string()
-    .regex(/^\d{2}:\d{2}$/, 'Slot time must be in HH:MM format'),
-});
+const BookAppointmentSchema = z
+  .object({
+    patientName: z.string().trim().min(2, 'Patient name must be at least 2 characters'),
+    patientPhone: z.string().regex(PHONE_REGEX, 'Must be a valid 10-digit Indian mobile number'),
+    departmentId: z.string().regex(UUID_REGEX, 'Invalid department ID').optional(),
+    doctorId: z.string().regex(UUID_REGEX, 'Invalid doctor ID').optional(),
+    appointmentDate: z
+      .string()
+      .refine(isNotPast, { message: 'Appointment date cannot be in the past' })
+      .refine(isWeekday, { message: 'Appointments are not available on Sundays' }),
+    slotTime: z
+      .string()
+      .regex(/^\d{2}:\d{2}$/, 'Slot time must be in HH:MM format')
+      .optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.doctorId && !data.departmentId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['departmentId'],
+        message: 'Department is required when no doctor is selected',
+      });
+    }
+  });
 
 const RescheduleSchema = z.object({
   appointmentDate: z

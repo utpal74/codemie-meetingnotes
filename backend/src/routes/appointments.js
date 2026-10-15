@@ -58,6 +58,15 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
+router.get('/:id/sms', async (req, res, next) => {
+  try {
+    await AppointmentService.findById(req.params.id);
+    res.json(await NotificationService.getLatestSmsStatus(req.params.id));
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.patch('/:id/cancel', async (req, res, next) => {
   try {
     const appointment = await AppointmentService.cancelAppointment(req.params.id);

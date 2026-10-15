@@ -67,6 +67,34 @@ describe('BookAppointmentSchema', () => {
   });
 });
 
+describe('BookAppointmentSchema — optional doctor/slot', () => {
+  const base = {
+    patientName: 'Ravi Kumar',
+    patientPhone: '9876543210',
+    appointmentDate: FUTURE_WEEKDAY,
+  };
+  const DEPT = '00000000-0000-0000-0000-000000000002';
+  const DOC = '00000000-0000-0000-0000-000000000001';
+
+  test('accepts department only (any doctor, any slot)', () => {
+    expect(parse(BookAppointmentSchema, { ...base, departmentId: DEPT }).success).toBe(true);
+  });
+
+  test('accepts doctor without slot', () => {
+    expect(parse(BookAppointmentSchema, { ...base, doctorId: DOC }).success).toBe(true);
+  });
+
+  test('rejects when neither doctor nor department is given', () => {
+    const r = parse(BookAppointmentSchema, base);
+    expect(r.success).toBe(false);
+    expect(r.error.errors[0].path[0]).toBe('departmentId');
+  });
+
+  test('rejects a malformed slotTime when provided', () => {
+    expect(parse(BookAppointmentSchema, { ...base, doctorId: DOC, slotTime: '9am' }).success).toBe(false);
+  });
+});
+
 describe('RescheduleSchema', () => {
   const valid = { appointmentDate: FUTURE_WEEKDAY, slotTime: '11:00' };
 

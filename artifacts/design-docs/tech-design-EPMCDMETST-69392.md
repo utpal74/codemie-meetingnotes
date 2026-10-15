@@ -368,6 +368,15 @@ Also update `createAppointment()` to call `createAppointmentAuto()` for backward
 
 ---
 
+## 5a. Implementation notes (as built)
+
+- Schema changes live in `backend/src/schemas/index.js` (no `schemas/appointments.js` exists). Validation failures keep the existing `422 VALIDATION_ERROR` envelope rather than `400`.
+- `createAppointment()` was extended in place instead of adding `createAppointmentAuto()`. Random doctor selection only considers doctors who are free at the requested slot (or have any open slot), so `NO_SLOTS_AVAILABLE` is returned only when every candidate is full. Auto-assigned picks are retried up to 3 times if they lose a concurrency race.
+- `DOCTOR_NOT_FOUND` (404) is returned for an unknown `doctorId`.
+- T-02 / T-03 required no code change: `authenticate` is already mounted on all appointment/slot routes and the 401/409/422 envelopes already match. Coverage was added via `auth.guard.appointments.test.js`.
+- Frontend polling lives in `frontend/src/hooks/useSmsStatus.js` (15 s interval, max 60 polls) and is surfaced through `SmsStatusBanner`.
+- Playwright e2e specs (`booking-random.spec.ts`, `manage-appointment.spec.ts`, `sms-banner.spec.ts`) were not added: the repo has no Playwright setup.
+
 ## 6. Open questions
 
 1. **Timezone for “Sunday” and clinic hours validation**: current code uses `getUTCDay()`; should this be based on clinic local timezone (IST) using local `getDay()`? Ticket says “System clock/timezone is configured”; recommend switching to local day-of-week or explicitly using Asia/Kolkata.

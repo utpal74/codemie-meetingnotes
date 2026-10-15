@@ -107,7 +107,33 @@ async function send(appointment, messageType) {
   }
 }
 
+const MAX_SMS_ATTEMPTS = 3;
+
+async function getLatestSmsStatus(appointmentId) {
+  const latest = await prisma.smsLog.findFirst({
+    where: { appointmentId },
+    orderBy: { createdAt: 'desc' },
+  });
+  if (!latest) return { appointmentId, latest: null, failedAfterRetries: false };
+
+  const failedAfterRetries = latest.status === 'FAILED' && latest.attemptCount >= MAX_SMS_ATTEMPTS;
+  if (failedAfterRetries) {
+    logger.warn({ appointmentId, smsLogId: latest.id, attempts: latest.attemptCount }, 'SMS failed after retries');
+  }
+  return {
+    appointmentId,
+    latest: {
+      messageType: latest.messageType,
+      status: latest.status,
+      attemptCount: latest.attemptCount,
+      updatedAt: latest.updatedAt,
+    },
+    failedAfterRetries,
+  };
+}
+
 module.exports = {
+  getLatestSmsStatus,
   sendBookingSms: (appt) => send(appt, 'BOOKING'),
   sendCancelSms: (appt) => send(appt, 'CANCELLATION'),
   sendRescheduleSms: (appt) => send(appt, 'RESCHEDULING'),

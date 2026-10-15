@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import api from '../api/client';
 import { AppointmentCard } from './AppointmentList';
-import SmsBanner from './SmsBanner';
+import { SmsStatusBanner } from './SmsBanner';
 
 const today = () => format(new Date(), 'yyyy-MM-dd');
 
@@ -20,7 +20,6 @@ export default function CancelReschedule({ appointment, onDone }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState(null);
-  const [smsStatus, setSmsStatus] = useState(null);
 
   useEffect(() => {
     if (mode !== 'reschedule' || !rescheduleForm.appointmentDate || !isWeekday(rescheduleForm.appointmentDate)) {
@@ -44,7 +43,6 @@ export default function CancelReschedule({ appointment, onDone }) {
     try {
       const res = await api.patch(`/appointments/${appointment.appointmentId}/cancel`);
       setResult(res.data);
-      setSmsStatus(res.data.smsStatus);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -59,7 +57,6 @@ export default function CancelReschedule({ appointment, onDone }) {
     try {
       const res = await api.patch(`/appointments/${appointment.appointmentId}/reschedule`, rescheduleForm);
       setResult(res.data);
-      setSmsStatus(res.data.smsStatus);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -81,7 +78,7 @@ export default function CancelReschedule({ appointment, onDone }) {
             </p>
           )}
         </div>
-        <SmsBanner smsStatus={smsStatus} onDismiss={() => setSmsStatus(null)} />
+        <SmsStatusBanner appointmentId={result.appointmentId} initialStatus={result.smsStatus} />
         <button onClick={onDone} className="text-sm text-blue-600 underline">← Back to search</button>
       </div>
     );

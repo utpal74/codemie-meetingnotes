@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { format, addDays } from 'date-fns';
 import api from '../api/client';
-import SmsBanner from './SmsBanner';
+import { SmsStatusBanner } from './SmsBanner';
 
 const today = () => format(new Date(), 'yyyy-MM-dd');
 
@@ -24,7 +24,8 @@ export default function BookingForm() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [confirmation, setConfirmation] = useState(null);
-  const [smsStatus, setSmsStatus] = useState(null);
+  const [anyDoctor, setAnyDoctor] = useState(false);
+  const [anySlot, setAnySlot] = useState(false);
 
   useEffect(() => {
     api.get('/departments').then((res) => setDepartments(res.data)).catch(() => {});
@@ -38,14 +39,14 @@ export default function BookingForm() {
   }, [form.departmentId]);
 
   useEffect(() => {
-    if (!form.doctorId || !form.appointmentDate || !isWeekday(form.appointmentDate)) {
+    if (anyDoctor || anySlot || !form.doctorId || !form.appointmentDate || !isWeekday(form.appointmentDate)) {
       setSlots([]);
       return;
     }
     api.get('/slots', { params: { doctorId: form.doctorId, date: form.appointmentDate } })
       .then((res) => setSlots(res.data.availableSlots || []))
       .catch(() => setSlots([]));
-  }, [form.doctorId, form.appointmentDate]);
+  }, [form.doctorId, form.appointmentDate, anyDoctor, anySlot]);
 
   const set = (field, value) => {
     setForm((f) => ({ ...f, [field]: value }));
@@ -60,12 +61,12 @@ export default function BookingForm() {
       const res = await api.post('/appointments', {
         patientName: form.patientName,
         patientPhone: form.patientPhone,
-        doctorId: form.doctorId,
+        departmentId: form.departmentId,
+        ...(anyDoctor ? {} : { doctorId: form.doctorId }),
         appointmentDate: form.appointmentDate,
-        slotTime: form.slotTime,
+        ...(anySlot ? {} : { slotTime: form.slotTime }),
       });
       setConfirmation(res.data);
-      setSmsStatus(res.data.smsStatus);
       setForm({ patientName: '', patientPhone: '', departmentId: '', doctorId: '', appointmentDate: today(), slotTime: '' });
     } catch (err) {
       if (err.field) setErrors({ [err.field]: err.message });
@@ -105,7 +106,7 @@ export default function BookingForm() {
             <dt className="font-medium">Date</dt><dd>{new Date(confirmation.appointmentDate).toLocaleDateString('en-IN')}</dd>
             <dt className="font-medium">Time</dt><dd>{confirmation.slotTime}</dd>
           </dl>
-          <SmsBanner smsStatus={smsStatus} onDismiss={() => setSmsStatus(null)} />
+          <SmsStatusBanner appointmentId={confirmation.appointmentId} initialStatus={confirmation.smsStatus} />
           <button onClick={() => setConfirmation(null)} className="mt-3 text-sm text-green-700 underline">
             Book another
           </button>
@@ -132,20 +133,30 @@ export default function BookingForm() {
               <option value="">Select department</option>
               {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
             </select>
+            {errors.departmentId && <p className="text-xs text-red-600 mt-1">{errors.departmentId}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Doctor <span className="text-red-500">*</span></label>
+            <label className="flex items-center gap-2 text-sm text-gray-700 mb-2">
+              <input
+                type="checkbox"
+                checked={anyDoctor}
+                onChange={(e) => { setAnyDoctor(e.target.checked); set('doctorId', ''); set('slotTime', ''); }}
+              />
+              Any doctor (system assigns one from the department)
+            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Doctor {!anyDoctor && <span className="text-red-500">*</span>}</label>
             <select
-              required
+              required={!anyDoctor}
               value={form.doctorId}
-              disabled={!form.departmentId}
+              disabled={!form.departmentId || anyDoctor}
               onChange={(e) => { set('doctorId', e.target.value); set('slotTime', ''); }}
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
             >
               <option value="">Select doctor</option>
               {doctors.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
             </select>
+            {errors.doctorId && <p className="text-xs text-red-600 mt-1">{errors.doctorId}</p>}
           </div>
 
           <div>
@@ -165,19 +176,27 @@ export default function BookingForm() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Time Slot <span className="text-red-500">*</span></label>
+            <label className="flex items-center gap-2 text-sm text-gray-700 mb-2">
+              <input
+                type="checkbox"
+                checked={anySlot}
+                onChange={(e) => { setAnySlot(e.target.checked); set('slotTime', ''); }}
+              />
+              Any available slot (system assigns one)
+            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Time Slot {!anySlot && <span className="text-red-500">*</span>}</label>
             <select
-              required
+              required={!anySlot}
               value={form.slotTime}
-              disabled={!slots.length}
+              disabled={anySlot || !slots.length}
               onChange={(e) => set('slotTime', e.target.value)}
               className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 ${errors.slotTime ? 'border-red-400' : 'border-gray-300'}`}
             >
-              <option value="">{slots.length ? 'Select a slot' : 'Select doctor & date first'}</option>
+              <option value="">{anySlot ? 'Assigned automatically' : slots.length ? 'Select a slot' : 'Select doctor & date first'}</option>
               {slots.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
             {errors.slotTime && <p className="text-xs text-red-600 mt-1">{errors.slotTime}</p>}
-            {form.doctorId && form.appointmentDate && isWeekday(form.appointmentDate) && slots.length === 0 && (
+            {!anySlot && !anyDoctor && form.doctorId && form.appointmentDate && isWeekday(form.appointmentDate) && slots.length === 0 && (
               <p className="text-xs text-amber-600 mt-1">No slots available for this doctor on this date.</p>
             )}
           </div>

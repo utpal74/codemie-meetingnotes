@@ -8,6 +8,13 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added - EPMCDMETST-69392
+- Booking accepts an optional `doctorId` (random doctor from `departmentId`) and optional `slotTime` (random open slot)
+- `GET /api/appointments/:id/sms` returns the latest SMS status and `failedAfterRetries`
+- Booking form "Any doctor" / "Any available slot" options
+- SMS banner states for pending retry, failed, failed after retries, and disabled; polls until resolved
+- New error codes `NO_DOCTOR_AVAILABLE`, `NO_SLOTS_AVAILABLE`, `DOCTOR_NOT_FOUND`
+
 ---
 
 ## [1.0.0] — 2026-09-23

@@ -9,6 +9,12 @@ function createError(code, status, message, field = null) {
 const Errors = {
   SLOT_UNAVAILABLE: () =>
     createError('SLOT_UNAVAILABLE', 409, 'The selected slot is already booked. Please choose another time.', 'slotTime'),
+  NO_DOCTOR_AVAILABLE: () =>
+    createError('NO_DOCTOR_AVAILABLE', 409, 'No doctor is available in this department for the requested time.', 'departmentId'),
+  NO_SLOTS_AVAILABLE: () =>
+    createError('NO_SLOTS_AVAILABLE', 409, 'No slots are available on the selected date.', 'slotTime'),
+  DOCTOR_NOT_FOUND: () =>
+    createError('DOCTOR_NOT_FOUND', 404, 'The selected doctor does not exist.', 'doctorId'),
   APPOINTMENT_NOT_FOUND: () =>
     createError('APPOINTMENT_NOT_FOUND', 404, 'No appointment found for the given ID or phone number.'),
   INVALID_PHONE: () =>
