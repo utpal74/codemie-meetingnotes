@@ -1,0 +1,13 @@
+{
+  "name": "clinic-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright UI tests for the receptionist app (network-stubbed, no backend or DB required)",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  }
+}

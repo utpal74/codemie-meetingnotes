@@ -1,0 +1,17 @@
+{
+  "_note": "NOT POSTED. Replace SPACE_KEY and optionally set ancestors, then POST to /rest/api/content.",
+  "endpoint": "/rest/api/content",
+  "payload": {
+    "type": "page",
+    "title": "Test execution report - EPMCDMETST-69392",
+    "space": {
+      "key": "SPACE_KEY"
+    },
+    "body": {
+      "storage": {
+        "value": "<h1>Test execution report - EPMCDMETST-69392</h1>\n<p>Receptionist manages appointments and patient SMS notifications. Branch <code>feature/EPMCDMETST-69392-meetingnotes</code>, 2026-10-15.</p>\n<h2>Execution status</h2>\n<table><tbody><tr><th>Layer</th><th>Written</th><th>Executed</th><th>Result</th></tr><tr><td>Backend unit (Jest)</td><td>7 suites, 109 tests (39 new)</td><td>Yes</td><td>109 / 109 passed</td></tr><tr><td>Backend integration</td><td>3 new files, 41 test definitions</td><td>No</td><td>No PostgreSQL available</td></tr><tr><td>Playwright UI</td><td>3 specs, 33 test definitions</td><td>No</td><td>Playwright not installed</td></tr><tr><td>BDD Gherkin</td><td>4 features, 50 scenarios</td><td>n/a</td><td>Specification only</td></tr></tbody></table>\n<h2>Traceability</h2>\n<table><tbody><tr><th>Acceptance criterion</th><th>Unit</th><th>Integration</th><th>UI</th></tr><tr><td>AC-1 random doctor / slot</td><td>assignment unit (run)</td><td>booking.random, errors, concurrency (not run)</td><td>booking-random (not run)</td></tr><tr><td>AC-2 hours and Sundays</td><td>SlotService, schemas (run)</td><td>errors (not run)</td><td>booking-random (not run)</td></tr><tr><td>AC-3 confirmed + details</td><td>assignment (run)</td><td>appointments.test, booking.random (not run)</td><td>booking-random (not run)</td></tr><tr><td>AC-4 no double booking</td><td>assignment race/P2034 (run)</td><td>concurrency (not run)</td><td>booking-random 409 (not run)</td></tr><tr><td>AC-5 lookup</td><td>-</td><td>appointments.test, reschedule.sms (not run)</td><td>manage-appointment (not run)</td></tr><tr><td>AC-6 cancel + SMS</td><td>assignment (run)</td><td>reschedule.sms (not run)</td><td>manage-appointment (not run)</td></tr><tr><td>AC-7 reschedule + SMS</td><td>assignment (run)</td><td>reschedule.sms, concurrency (not run)</td><td>manage-appointment (not run)</td></tr><tr><td>AC-8 401 envelope</td><td>-</td><td>auth.guard.appointments (not run)</td><td>-</td></tr><tr><td>AC-9 SMS failure surfaced</td><td>NotificationService.status (run)</td><td>sms.failure-surfacing (not run)</td><td>sms-banner (not run)</td></tr></tbody></table>\n<h2>Findings</h2>\n<ul>\n<li>UI: Any doctor without Any available slot posts an empty slotTime and the API returns 422.</li>\n<li>Backend: a CANCELLED appointment can still be rescheduled (no status check).</li>\n<li>Backend: an invalid slot returns INVALID_DATE on field appointmentDate instead of slotTime.</li>\n<li>Sunday validation uses UTC day-of-week (tech design open question 1).</li>\n</ul>\n<h2>How to run the remaining tests</h2>\n<ac:structured-macro ac:name=\"code\"><ac:plain-text-body><![CDATA[# backend integration (needs Postgres container)\ncd backend && npm run test:integration\n\n# Playwright UI (API stubbed)\ncd frontend/e2e && npm install && npx playwright install chromium && npm run test:e2e]]></ac:plain-text-body></ac:structured-macro>",
+        "representation": "storage"
+      }
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "_note": "NOT POSTED. POST to /rest/api/2/issue/EPMCDMETST-69392/comment (wiki markup body) when credentials are available.",
+  "issueKey": "EPMCDMETST-69392",
+  "endpoint": "/rest/api/2/issue/EPMCDMETST-69392/comment",
+  "payload": {
+    "body": "h3. Stage 5 - Test generation and QA (EPMCDMETST-69392)\nBranch: feature/EPMCDMETST-69392-meetingnotes. Full report: artifacts/test-reports/test-execution-report-EPMCDMETST-69392.md\n\n*Executed:* backend unit tests (Jest, no DB) - 7 suites, 109 / 109 passed (28 + 11 new tests for random doctor/slot assignment, race retry, error mapping, reschedule linking, SMS failedAfterRetries).\n*Written but NOT executed:* backend integration tests (concurrency, errors, reschedule + SMS: 41 test definitions) - no PostgreSQL available; Playwright UI specs (33 test definitions, API stubbed) - Playwright not installed. No pass/fail result is claimed for these.\n*BDD:* 4 feature files, 50 scenarios tagged by AC-1..AC-9 (specification only).\n\n*Open findings:*\n* UI: \"Any doctor\" without \"Any available slot\" posts an empty slotTime and the API returns 422 (Playwright test.fixme).\n* Backend: a CANCELLED appointment can still be rescheduled (no status check) - needs a product decision.\n* Backend: invalid slot returns INVALID_DATE on field appointmentDate instead of slotTime.\n* Sunday check uses UTC day-of-week (tech design open question 1).\n\n*Next step:* start Postgres and run npm run test:integration in backend; npm install in frontend/e2e and run npm run test:e2e."
+  }
+}
