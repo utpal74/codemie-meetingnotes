@@ -1,0 +1,11 @@
+{
+  "name": "codemie-meetingnotes-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pipeline tooling (BA Intake). Backend app lives in ./backend.",
+  "scripts": {
+    "ba:intake": "node tools/ba-intake/index.js",
+    "test:ba": "node backend/node_modules/jest/bin/jest.js --config tools/jest.config.js"
+  },
+  "engines": { "node": ">=18" }
+}

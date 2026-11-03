@@ -1,0 +1,7 @@
+{
+  "requestId": "example-001",
+  "title": "Export meeting notes as PDF",
+  "requestText": "As a receptionist, I want to export meeting notes as PDF, so that attendees get a copy. When the meeting ends, the export runs. The file must be under 5 MB.",
+  "source": { "type": "jira", "issueKey": "EPMCDMETST-70761" },
+  "requester": { "name": "Jane Doe" }
+}
