@@ -1,9 +1,19 @@
-# Enhancement backlog (BA) 
+# Enhancement backlog / Gap log
 
-This artifact was not present in the repository when Stage 2 started. It is created as a placeholder per pipeline contract step (copy from previous assistant output). 
+This document tracks gaps and enhancements found in requirements, design and code review so they can be triaged and traced to Jira stories.
 
-- Ticket: EPMCDMETST-69392
-- Summary: Receptionist manages appointments + patient SMS notifications
+Related story: **EPMCDMETST-69392** (implemented under EPMCDMETST-70755)
 
-Notes:
-- The story’s functional scope overlaps with existing backend capabilities (appointments, slots, SMS templates/logs, retry job). Stage 3 should focus on completing receptionist UI workflows and tightening auth/validation/errors to meet acceptance criteria.
+| Gap / enhancement | Evidence (source) | Impact | Recommendation | Priority | Owner | Status |
+|---|---|---|---|---|---|---|
+| Missing/unclear documented enhancement backlog format (gap log table) | `artifacts/enhancement.md` previously contained only a placeholder and no gap-log table. | Reduces traceability for BA/QA and makes it harder to track scope gaps discovered during review. | Adopt the standard gap-log table format (this document) and keep it updated as gaps are discovered during requirements/design/code review. | P2 | BA | Open |
+| Unclear receptionist UI workflow coverage for cancel/reschedule + SMS confirmation | `README.md` states the receptionist can “book, cancel, or reschedule” and patients receive an “automatic SMS confirmation after every action”, but the repo-level docs do not explicitly enumerate UI acceptance criteria/workflow steps here. | Risk that UI behaviors and SMS triggers drift from expected acceptance criteria (e.g., cancel/reschedule edge cases). | Add explicit UI workflow acceptance checks (book/cancel/reschedule) and SMS trigger expectations to requirements/QA checklist (or link to where they are specified) and confirm implementation matches. | P1 | BA/QA | Open |
+| Missing detailed acceptance criteria for “create appointment” validations and slot-selection rules (random vs manual) | Story context mentions receptionist books an appointment with validations, plus random/manual slot selection, but repository docs do not specify the validation matrix (required fields, date/time constraints, double-booking rules, provider/clinic hours) nor deterministic behavior for “random slot” selection. | Ambiguous requirements lead to inconsistent implementation/testing; risk of booking invalid or conflicting appointments and flaky tests due to non-deterministic random selection. | Document create-appointment acceptance criteria including: required inputs; validation messages; conflict/double-booking constraints; clinic/provider working hours/timezone; and define “random slot” algorithm (e.g., earliest available, uniform random within window) with determinism (seed) for tests. | P1 | BA/QA | Open |
+| Unclear SMS content/triggering requirements for appointment creation (and failure cases) | Existing documentation only states “automatic SMS confirmation after every action” without specifying payload details for a newly created appointment, opt-out/consent, delivery retries, or when not to send (validation failure, payment-required, draft). | Risk of sending incorrect PHI, non-compliant messaging, duplicate messages, or missing confirmations; hard to validate in QA. | Specify SMS behavior for create-appointment: exact trigger point (after commit), template/content fields, localization, consent/opt-out handling, idempotency key, and how to handle delivery failure/retry; add QA checks/mocks. | P1 | BA/QA | Open |
+
+## How to update this file
+
+1. **No duplicates.** Before adding a row, search this file for similar wording or the same evidence. If a gap is already listed, update the existing row (for example its Status) instead of adding a new one. Append only new gaps.
+2. **Evidence is required.** Every row must cite evidence in the `Evidence (source)` column: a repo file path and/or a document section.
+3. **Related Jira story key is required.** Every row must be traceable to a Jira story key, either in the Evidence cell or via the `Related story:` line above the table (currently **EPMCDMETST-69392**). Add the key to the row if it differs from that line.
+4. **Use the agreed columns and values.** Priority is one of P1, P2, P3. Status is one of Open, In progress, Done, Won't do. Owner is a role or a named owner.
