@@ -2,7 +2,8 @@ const { Router } = require('express');
 const AppointmentService = require('../services/AppointmentService');
 const NotificationService = require('../services/NotificationService');
 const { validate } = require('../middleware/validate');
-const { BookAppointmentSchema, RescheduleSchema } = require('../schemas');
+const { requireRole } = require('../middleware/authenticate');
+const { BookAppointmentSchemaV2, RescheduleSchema } = require('../schemas');
 const { decryptPhone } = require('../helpers/crypto');
 
 const router = Router();
@@ -22,7 +23,7 @@ function toPublic(appt) {
   };
 }
 
-router.post('/', validate(BookAppointmentSchema), async (req, res, next) => {
+router.post('/', requireRole('RECEPTIONIST'), validate(BookAppointmentSchemaV2), async (req, res, next) => {
   try {
     const appointment = await AppointmentService.createAppointment(req.body);
     const smsStatus = await NotificationService.sendBookingSms(appointment);

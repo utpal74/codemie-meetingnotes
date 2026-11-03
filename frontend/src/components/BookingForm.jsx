@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { format, addDays } from 'date-fns';
 import api from '../api/client';
 import SmsBanner from './SmsBanner';
@@ -15,7 +15,7 @@ export default function BookingForm() {
   const [slots, setSlots] = useState([]);
   const [form, setForm] = useState({
     patientName: '',
-    patientPhone: '',
+    patientMobile: '',
     departmentId: '',
     doctorId: '',
     appointmentDate: today(),
@@ -37,15 +37,18 @@ export default function BookingForm() {
       .catch(() => {});
   }, [form.departmentId]);
 
-  useEffect(() => {
+  const loadSlots = useCallback(() => {
     if (!form.doctorId || !form.appointmentDate || !isWeekday(form.appointmentDate)) {
       setSlots([]);
-      return;
+      return Promise.resolve();
     }
-    api.get('/slots', { params: { doctorId: form.doctorId, date: form.appointmentDate } })
+    return api.get('/slots', { params: { doctorId: form.doctorId, date: form.appointmentDate } })
       .then((res) => setSlots(res.data.availableSlots || []))
       .catch(() => setSlots([]));
   }, [form.doctorId, form.appointmentDate]);
+
+  // Refreshes whenever the doctor or date changes
+  useEffect(() => { loadSlots(); }, [loadSlots]);
 
   const set = (field, value) => {
     setForm((f) => ({ ...f, [field]: value }));
@@ -59,15 +62,20 @@ export default function BookingForm() {
     try {
       const res = await api.post('/appointments', {
         patientName: form.patientName,
-        patientPhone: form.patientPhone,
+        patientMobile: form.patientMobile,
         doctorId: form.doctorId,
         appointmentDate: form.appointmentDate,
         slotTime: form.slotTime,
       });
       setConfirmation(res.data);
       setSmsStatus(res.data.smsStatus);
-      setForm({ patientName: '', patientPhone: '', departmentId: '', doctorId: '', appointmentDate: today(), slotTime: '' });
+      setForm({ patientName: '', patientMobile: '', departmentId: '', doctorId: '', appointmentDate: today(), slotTime: '' });
     } catch (err) {
+      if (err.code === 'SLOT_ALREADY_BOOKED') {
+        // The slot was taken: drop the selection and refresh so it can no longer be chosen
+        setForm((f) => ({ ...f, slotTime: '' }));
+        await loadSlots();
+      }
       if (err.field) setErrors({ [err.field]: err.message });
       else setErrors({ _global: err.message });
     } finally {
@@ -119,7 +127,7 @@ export default function BookingForm() {
           )}
 
           {field('patientName', 'Patient Name', 'text', { placeholder: 'Full name' })}
-          {field('patientPhone', 'Phone Number', 'tel', { placeholder: '9876543210', maxLength: 10 })}
+          {field('patientMobile', 'Mobile Number', 'tel', { placeholder: '9876543210', maxLength: 10 })}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Department <span className="text-red-500">*</span></label>

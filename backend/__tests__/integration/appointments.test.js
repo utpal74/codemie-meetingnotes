@@ -194,7 +194,42 @@ describe('Double-booking prevention (CR-03)', () => {
     const r2 = await agent.post('/api/appointments').send({ ...booking, patientPhone: '9111000001' });
     expect(r1.status).toBe(201);
     expect(r2.status).toBe(409);
-    expect(r2.body.error.code).toBe('SLOT_UNAVAILABLE');
+    expect(r2.body.error.code).toBe('SLOT_ALREADY_BOOKED');
+    expect(r2.body.error.field).toBe('slotTime');
+  });
+
+  test('concurrent bookings of the same slot - exactly one 201, one 409 SLOT_ALREADY_BOOKED', async () => {
+    const booking = makeBooking({ slotTime: '16:30' });
+    const results = await Promise.all([
+      agent.post('/api/appointments').send({ ...booking, patientPhone: '9111000002' }),
+      agent.post('/api/appointments').send({ ...booking, patientPhone: '9111000003' }),
+    ]);
+    const statuses = results.map((r) => r.status).sort();
+    expect(statuses).toEqual([201, 409]);
+    const loser = results.find((r) => r.status === 409);
+    expect(loser.body.error.code).toBe('SLOT_ALREADY_BOOKED');
+    const confirmed = await prisma.appointment.count({
+      where: { doctorId: doctor.id, slotTime: '16:30', status: 'CONFIRMED' },
+    });
+    expect(confirmed).toBe(1);
+  });
+
+  test('DB partial unique index rejects a second CONFIRMED row for the same slot', async () => {
+    await agent.post('/api/appointments').send(makeBooking({ slotTime: '16:00' }));
+    const first = await prisma.appointment.findFirst({ where: { slotTime: '16:00' } });
+    await expect(
+      prisma.appointment.create({
+        data: {
+          patientName: 'Dup',
+          patientPhone: first.patientPhone,
+          patientPhoneHash: first.patientPhoneHash,
+          doctorId: first.doctorId,
+          appointmentDate: first.appointmentDate,
+          slotTime: '16:00',
+          status: 'CONFIRMED',
+        },
+      })
+    ).rejects.toMatchObject({ code: 'P2002' });
   });
 });
 
@@ -207,10 +242,18 @@ describe('Validation', () => {
     expect(res.body.error.field).toBe('appointmentDate');
   });
 
-  test('422 for invalid phone number', async () => {
+  test('422 VALIDATION_ERROR on patientMobile for invalid phone number', async () => {
     const res = await agent.post('/api/appointments').send(makeBooking({ patientPhone: '12345' }));
     expect(res.status).toBe(422);
-    expect(res.body.error.field).toBe('patientPhone');
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    expect(res.body.error.field).toBe('patientMobile');
+  });
+
+  test('422 VALIDATION_ERROR on patientMobile when sent as patientMobile', async () => {
+    const { patientPhone, ...rest } = makeBooking();
+    const res = await agent.post('/api/appointments').send({ ...rest, patientMobile: '12345' });
+    expect(res.status).toBe(422);
+    expect(res.body.error).toMatchObject({ code: 'VALIDATION_ERROR', field: 'patientMobile' });
   });
 
   test('422 for missing required fields', async () => {
@@ -218,8 +261,42 @@ describe('Validation', () => {
     expect(res.status).toBe(422);
   });
 
-  test('401 when booking without auth', async () => {
+  test('401 UNAUTHORIZED envelope when booking without auth', async () => {
     const res = await request(app).post('/api/appointments').send(makeBooking());
     expect(res.status).toBe(401);
+    expect(res.body.error).toMatchObject({ code: 'UNAUTHORIZED', field: null });
+    expect(typeof res.body.error.message).toBe('string');
+  });
+});
+
+// EPMCDMETST-70806: patientMobile, role guard, SMS log
+
+describe('POST /api/appointments - EPMCDMETST-70806', () => {
+  test('201 when the mobile is sent as patientMobile', async () => {
+    const { patientPhone, ...rest } = makeBooking({ slotTime: '15:00' });
+    const res = await agent.post('/api/appointments').send({ ...rest, patientMobile: patientPhone });
+    expect(res.status).toBe(201);
+    expect(res.body.status).toBe('CONFIRMED');
+  });
+
+  test('booking stores a BOOKING SmsLog row for the appointment', async () => {
+    const res = await agent.post('/api/appointments').send(makeBooking({ slotTime: '15:30' }));
+    expect(res.status).toBe(201);
+    const logs = await prisma.smsLog.findMany({ where: { appointmentId: res.body.appointmentId } });
+    expect(logs).toHaveLength(1);
+    expect(logs[0].messageType).toBe('BOOKING');
+  });
+
+  test('403 FORBIDDEN when the session has no RECEPTIONIST role', () => {
+    const { requireRole } = require('../../src/middleware/authenticate');
+    const req = { session: { authenticated: true, role: 'OTHER' } };
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+    const next = jest.fn();
+    requireRole('RECEPTIONIST')(req, res, next);
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.json).toHaveBeenCalledWith({
+      error: expect.objectContaining({ code: 'FORBIDDEN', field: null }),
+    });
   });
 });

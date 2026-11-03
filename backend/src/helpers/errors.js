@@ -9,6 +9,11 @@ function createError(code, status, message, field = null) {
 const Errors = {
   SLOT_UNAVAILABLE: () =>
     createError('SLOT_UNAVAILABLE', 409, 'The selected slot is already booked. Please choose another time.', 'slotTime'),
+  // Booking endpoint alias for SLOT_UNAVAILABLE (EPMCDMETST-70806); reschedule keeps SLOT_UNAVAILABLE.
+  SLOT_ALREADY_BOOKED: () =>
+    createError('SLOT_ALREADY_BOOKED', 409, 'The selected slot is already booked. Please choose another time.', 'slotTime'),
+  FORBIDDEN: () =>
+    createError('FORBIDDEN', 403, 'You do not have permission to perform this action.'),
   APPOINTMENT_NOT_FOUND: () =>
     createError('APPOINTMENT_NOT_FOUND', 404, 'No appointment found for the given ID or phone number.'),
   INVALID_PHONE: () =>

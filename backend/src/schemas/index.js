@@ -34,6 +34,33 @@ const BookAppointmentSchema = z.object({
     .regex(/^\d{2}:\d{2}$/, 'Slot time must be in HH:MM format'),
 });
 
+// EPMCDMETST-70806: accepts `patientMobile` (ticket wording) or legacy `patientPhone`.
+// The legacy key is mapped to `patientMobile`; the output never contains `patientPhone`.
+const BookAppointmentSchemaV2 = z.preprocess(
+  (body) => {
+    if (body && typeof body === 'object' && !Array.isArray(body)) {
+      const { patientPhone, ...rest } = body;
+      if (rest.patientMobile === undefined && patientPhone !== undefined) {
+        rest.patientMobile = patientPhone;
+      }
+      return rest;
+    }
+    return body;
+  },
+  z.object({
+    patientName: z.string().min(2, 'Patient name must be at least 2 characters'),
+    patientMobile: z.string().regex(PHONE_REGEX, 'Must be a valid 10-digit Indian mobile number'),
+    doctorId: z.string().regex(UUID_REGEX, 'Invalid doctor ID'),
+    appointmentDate: z
+      .string()
+      .refine(isNotPast, { message: 'Appointment date cannot be in the past' })
+      .refine(isWeekday, { message: 'Appointments are not available on Sundays' }),
+    slotTime: z
+      .string()
+      .regex(/^\d{2}:\d{2}$/, 'Slot time must be in HH:MM format'),
+  })
+);
+
 const RescheduleSchema = z.object({
   appointmentDate: z
     .string()
@@ -44,4 +71,4 @@ const RescheduleSchema = z.object({
     .regex(/^\d{2}:\d{2}$/, 'Slot time must be in HH:MM format'),
 });
 
-module.exports = { LoginSchema, BookAppointmentSchema, RescheduleSchema };
+module.exports = { LoginSchema, BookAppointmentSchema, BookAppointmentSchemaV2, RescheduleSchema };

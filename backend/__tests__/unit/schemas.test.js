@@ -1,4 +1,4 @@
-const { BookAppointmentSchema, RescheduleSchema, LoginSchema } = require('../../src/schemas');
+const { BookAppointmentSchema, BookAppointmentSchemaV2, RescheduleSchema, LoginSchema } = require('../../src/schemas');
 
 const FUTURE_WEEKDAY = '2027-06-14'; // a Monday well in the future
 const FUTURE_SUNDAY  = '2027-06-13'; // the Sunday before
@@ -100,5 +100,45 @@ describe('LoginSchema', () => {
     const r = parse(LoginSchema, { username: 'receptionist', password: '' });
     expect(r.success).toBe(false);
     expect(r.error.errors[0].path[0]).toBe('password');
+  });
+});
+
+describe('BookAppointmentSchemaV2 (EPMCDMETST-70806)', () => {
+  const base = {
+    patientName: 'Ravi Kumar',
+    doctorId: '00000000-0000-0000-0000-000000000001',
+    appointmentDate: FUTURE_WEEKDAY,
+    slotTime: '14:30',
+  };
+
+  test('accepts patientMobile', () => {
+    const r = parse(BookAppointmentSchemaV2, { ...base, patientMobile: '9876543210' });
+    expect(r.success).toBe(true);
+    expect(r.data.patientMobile).toBe('9876543210');
+  });
+
+  test('maps legacy patientPhone to patientMobile', () => {
+    const r = parse(BookAppointmentSchemaV2, { ...base, patientPhone: '9876543210' });
+    expect(r.success).toBe(true);
+    expect(r.data.patientMobile).toBe('9876543210');
+    expect(r.data).not.toHaveProperty('patientPhone');
+  });
+
+  test('invalid mobile reports path patientMobile (also for legacy key)', () => {
+    const a = parse(BookAppointmentSchemaV2, { ...base, patientMobile: '12345' });
+    const b = parse(BookAppointmentSchemaV2, { ...base, patientPhone: '12345' });
+    expect(a.success).toBe(false);
+    expect(a.error.errors[0].path[0]).toBe('patientMobile');
+    expect(b.error.errors[0].path[0]).toBe('patientMobile');
+  });
+
+  test('missing mobile fails with patientMobile path', () => {
+    const r = parse(BookAppointmentSchemaV2, base);
+    expect(r.success).toBe(false);
+    expect(r.error.errors[0].path[0]).toBe('patientMobile');
+  });
+
+  test('rejects a non-object body', () => {
+    expect(parse(BookAppointmentSchemaV2, null).success).toBe(false);
   });
 });
