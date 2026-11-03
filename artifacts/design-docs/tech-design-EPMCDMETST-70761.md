@@ -218,3 +218,14 @@ Story draft (markdown preview)
 2. What is the canonical “duplicate match” threshold, and is ranking purely informational?
 3. Where does the enhancement request text come from in the repo (`docs/input/*`) and what is its schema?
 4. Which Jira fields are mandatory on Story create in this project (components/labels/epic link)?
+
+## 7. Implementation notes (Stage 3)
+
+Deviations from the plan above, made to keep the repo dependency-free and consistent with its CommonJS stack:
+
+- Modules are plain Node CommonJS (`.js`), not TypeScript. `types.ts` / Zod are replaced by `tools/ba-intake/request.schema.json` plus the dependency-free validator `tools/ba-intake/schema.js`.
+- `config.js` and `templates/render.js` were added; `createOrUpdateStory.js` covers T-08 and `artifacts.js` covers T-07.
+- Open question 1: when a duplicate is chosen (`--duplicate-of KEY`), Jira is updated by adding a comment only (the description is never edited).
+- Open question 2: duplicate score = share of extracted key terms found in the candidate summary; it blocks `create` at or above `BA_INTAKE_DUP_THRESHOLD` (default 0.5) unless `--allow-duplicate` is given. Ranking is otherwise informational.
+- Open questions 3/4: input is a JSON file passed via `--input`; Story creation sets project, summary, description, issue type (`JIRA_ISSUE_TYPE`) and an idempotency label only. Extra mandatory fields (components, epic link) are not supported yet.
+- npm scripts live in a new root `package.json` (`ba:intake`, `test:ba`); tests run with the Jest binary from `backend/node_modules`.

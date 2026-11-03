@@ -1,0 +1,65 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`draftStory story draft is stable (snapshot) 1`] = `
+"# Summary
+Export notes as PDF
+
+# General description
+As a receptionist, I want to export meeting notes as PDF, so that attendees get a copy. When the meeting ends, the export runs. The file must be under 5 MB.
+
+# Preconditions
+- receptionist has access to the capability.
+- Required reference data and permissions are in place.
+
+# Scenarios of use (Gherkin)
+\`\`\`gherkin
+Scenario: Main flow
+  Given receptionist is ready to proceed
+  When When the meeting ends
+  Then attendees get a copy
+
+Scenario: Alternative flow - invalid or incomplete input
+  Given receptionist provides invalid or incomplete input
+  When the action is submitted
+  Then the system rejects it with a clear message and nothing is changed
+\`\`\`
+
+# Acceptance criteria
+- AC-1: Scenario "Main flow" passes: export meeting notes as PDF.
+- AC-2: Scenario "Alternative flow - invalid or incomplete input" passes without side effects.
+- AC-3: Business rule is enforced: must be under 5 MB.
+"
+`;
+
+exports[`generateQuestions questions markdown is grouped by topic and numbered (snapshot) 1`] = `
+"# Clarifying questions - r1
+
+State: NEEDS_INPUT
+
+## Users & roles
+1. Who is the primary user or role that needs this capability?
+
+## Desired behavior
+2. What exactly should that user be able to achieve?
+3. What event or action starts this flow?
+
+## Success outcome
+4. What observable result defines success?
+
+## Business rules
+5. What key business rule, constraint, or limit applies?
+"
+`;
+
+exports[`searchDuplicates markdown lists candidates and handles empty (snapshot) 1`] = `
+"# Duplicate candidates - r1
+
+JQL: \`j\`
+
+| Rank | Key | Summary | Status | Score | Rationale |
+|---|---|---|---|---|---|
+| 1 | [ABC-1](u) | A|B | Open | 0.5 | r |
+
+Decision support only: BA Intake never closes or transitions issues.
+"
+`;
