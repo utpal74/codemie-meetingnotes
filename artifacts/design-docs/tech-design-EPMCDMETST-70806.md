@@ -234,3 +234,13 @@ States:
 
 1. **Error codes mismatch:** existing backend uses `SLOT_UNAVAILABLE`, `INVALID_PHONE` and `INVALID_DATE` (422). Ticket explicitly requires `SLOT_ALREADY_BOOKED` and `VALIDATION_ERROR` with field `patientMobile`. Should we (a) introduce aliases while keeping old codes for other endpoints, or (b) change globally? Proposed: **alias for this endpoint only** to minimize breaking change.
 2. **Role enforcement:** Confirm actual role string is exactly `RECEPTIONIST` in `requireRole` middleware and session user object. (If roles differ, update mapping.)
+
+## 7) Implementation notes (as built)
+
+- **Open question 1 (error codes):** `SLOT_ALREADY_BOOKED` added as an alias used by `POST /api/appointments` only; `SLOT_UNAVAILABLE` is retained for reschedule. Validation failures keep the existing `422` + `VALIDATION_ERROR` envelope from `validate` (no change to the middleware was needed).
+- **Open question 2 (roles):** the app has a single receptionist login and the session only carried `authenticated`. Login now also sets `session.role = 'RECEPTIONIST'`, and a new `requireRole(role)` middleware (401 `UNAUTHORIZED` / 403 `FORBIDDEN`) guards `POST /api/appointments`. `authenticate` was already mounted on `/api/appointments` in `app.js`.
+- **T-02 (DB protection):** no new migration. The partial unique index `UX_appt_slot` on `("doctorId","appointmentDate","slotTime") WHERE status = 'CONFIRMED'` already exists in migration `20260923171805_add_slot_unique_index`. `createAppointment` additionally maps Prisma `P2002` and `P2034` to `SLOT_ALREADY_BOOKED`.
+- **T-04:** `BookAppointmentSchemaV2` accepts `patientMobile` or legacy `patientPhone` (mapped to `patientMobile`); invalid values report `field: "patientMobile"`. The original `BookAppointmentSchema` is unchanged.
+- **T-05:** `NotificationService.send` already catches all failures, writes an `SmsLog` row and never throws; no change. Returned `smsStatus` values are `SENT | PENDING_RETRY | FAILED | DISABLED`.
+- **T-06:** the existing `BookingForm.jsx` (route `/`) already provided the form, departments, doctors, slots and envelope-based field errors. It now sends `patientMobile`, and on `SLOT_ALREADY_BOOKED` clears the selected slot and re-fetches slots so the booked slot is no longer selectable. The new page/API modules from the plan were not created, to avoid duplicating working code.
+- **E2E:** Playwright test is deferred to the QA stage (as stated in T-06).

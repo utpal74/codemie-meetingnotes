@@ -11,7 +11,8 @@ const APPOINTMENT_INCLUDE = {
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-async function createAppointment({ patientName, patientPhone, doctorId, appointmentDate, slotTime }) {
+async function createAppointment({ patientName, patientMobile, patientPhone: legacyPhone, doctorId, appointmentDate, slotTime }) {
+  const patientPhone = patientMobile ?? legacyPhone;
   if (!SlotService.validateSlot(slotTime)) {
     throw Errors.INVALID_DATE();
   }
@@ -24,7 +25,7 @@ async function createAppointment({ patientName, patientPhone, doctorId, appointm
         const existing = await tx.appointment.findFirst({
           where: { doctorId, appointmentDate: date, slotTime, status: 'CONFIRMED' },
         });
-        if (existing) throw Errors.SLOT_UNAVAILABLE();
+        if (existing) throw Errors.SLOT_ALREADY_BOOKED();
 
         return tx.appointment.create({
           data: {
@@ -44,9 +45,10 @@ async function createAppointment({ patientName, patientPhone, doctorId, appointm
 
     return appointment;
   } catch (err) {
-    if (err.code === 'SLOT_UNAVAILABLE') throw err;
-    // Serialization failure (P2034) — another concurrent booking won the race
-    if (err.code === 'P2034') throw Errors.SLOT_UNAVAILABLE();
+    if (err.code === 'SLOT_ALREADY_BOOKED') throw err;
+    // P2034 serialization failure or P2002 unique violation (UX_appt_slot) —
+    // another concurrent booking won the race
+    if (err.code === 'P2034' || err.code === 'P2002') throw Errors.SLOT_ALREADY_BOOKED();
     throw err;
   }
 }

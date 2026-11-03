@@ -40,6 +40,7 @@ router.post('/login', loginLimiter, validate(LoginSchema), async (req, res, next
     }
 
     req.session.authenticated = true;
+    req.session.role = 'RECEPTIONIST';
     logger.info({ username }, 'Receptionist logged in');
     res.json({ message: 'Login successful' });
   } catch (err) {
